@@ -1,0 +1,6 @@
+---
+- name: Manage PostgreSQL service
+  ansible.builtin.service:
+    name: "{{ postgresql_service_name }}"
+    state: "{{ postgresql_service_state }}"
+    enabled: true

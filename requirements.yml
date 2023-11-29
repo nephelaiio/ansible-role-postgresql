@@ -1,4 +1,8 @@
 ---
 roles:
+  - name: nephelaiio.postgresql_repo
   - name: nephelaiio.plugins
-collections: []
+collections:
+  - nephelaiio.plugins
+  - community.general
+  - community.postgresql

@@ -1,6 +1,66 @@
 ---
-_postgresql_package_default:
+postgresql_version: 15
+postgresql_packages_default:
   default:
-    - postgresql
-
-postgresql_state: present
+    - "curl"
+    - "software-properties-common"
+    - "apt-transport-https"
+    - "ca-certificates"
+    - "lsb-release"
+    - "postgresql-{{ postgresql_version }}"
+    - "postgresql-client-{{ postgresql_version }}"
+    - "python3-psycopg2"
+postgresql_port: 5432
+postgresql_service_name: postgresql
+postgresql_service_state: started
+postgresql_config_path_default:
+  debian: "/etc/postgresql/{{ postgresql_version }}/main"
+  redhat: "/var/lib/pgsql/data"
+postgresql_config_include_path_default:
+  debian: "/etc/postgresql/{{ postgresql_version }}/main/conf.d"
+  redhat: "/var/lib/pgsql/data/conf.d"
+postgresql_config_include_files:
+  - src: ansible.conf
+    force: true
+postgresql_config_overrides: ""
+postgresql_unix_socket_directories:
+  - /var/run/postgresql
+postgresql_global_config_options:
+  - option: unix_socket_directories
+    value: '{{ postgresql_unix_socket_directories | join(",") }}'
+  - option: log_directory
+    value: 'log'
+postgresql_user: postgres
+postgresql_group: postgres
+postgresql_unix_socket_mode_default:
+  redhat: "0755"
+  default: "02775"
+postgresql_auth_method: "{{ ansible_fips | ternary('scram-sha-256', 'md5') }}"
+postgresql_hba_entries:
+  - type: local
+    database: all
+    user: all
+    auth_method: peer
+  - type: local
+    database: all
+    user: all
+    auth_method: peer
+  - type: host
+    database: all
+    user: all
+    address: '127.0.0.1/32'
+    auth_method: "{{ postgresql_auth_method }}"
+  - type: host
+    database: all
+    user: all
+    address: '::1/128'
+    auth_method: "{{ postgresql_auth_method }}"
+postgresql_data_dir_default:
+  redhat: "/var/lib/pgsql/data"
+  default: "/var/lib/postgresql/{{ postgresql_version }}/main"
+postgresql_bin_path_default:
+  default: "/usr/bin"
+postgresql_nolog: true
+postgresql_users: []
+postgresql_default_database: postgres
+postgresql_databases: []

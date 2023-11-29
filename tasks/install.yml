@@ -1,0 +1,150 @@
+---
+- name: Verify PostgreSQL prerequesites
+  tags: always
+  block:
+
+    - name: Set variable overrides
+      ansible.builtin.set_fact:
+        _postgresql_packages: "{{ postgresql_packages | default(postgresql_packages_default | nephelaiio.plugins.sorted_get(overrides)) }}"
+        _postgresql_config_path: "{{ postgresql_config_path | default(postgresql_config_path_default | nephelaiio.plugins.sorted_get(overrides)) }}"
+        _postgresql_config_include_path: "{{ _psql_config_inc_path }}"
+        _postgresql_data_dir: "{{ postgresql_data_dir | default(postgresql_data_dir_default | nephelaiio.plugins.sorted_get(overrides)) }}"
+        _postgresql_bin_path: "{{ postgresql_bin_path | default(postgresql_bin_path_default | nephelaiio.plugins.sorted_get(overrides)) }}"
+        _postgresql_unix_socket_mode: "{{ _unix_socket_mode }}"
+      vars:
+        _psql_config_inc_path: "{{ postgresql_config_include_path | default(postgresql_config_include_path_default | nephelaiio.plugins.sorted_get(overrides)) }}"
+        _unix_socket_mode: "{{ postgresql_unix_socket_mode | default(postgresql_unix_socket_mode_default | nephelaiio.plugins.sorted_get(overrides)) }}"
+        overrides:
+          - "{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}"
+          - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}"
+          - "{{ ansible_distribution | lower }}"
+          - "{{ ansible_os_family | lower }}"
+          - "default"
+
+- name: Install PostgreSQL pre-requisites for debian
+  ansible.builtin.apt:
+    name:
+      - gpg-agent
+      - gnupg
+    update_cache: true
+  when: ansible_os_family | lower == "debian"
+  register: apt_res
+  retries: 5
+  delay: 5
+  until: apt_res is success
+
+- name: Install PostgreSQL pre-requisites for redhat
+  ansible.builtin.yum:
+    name:
+      - gnupg2
+    update_cache: true
+  when: ansible_os_family | lower == "redhat"
+  register: yum_res
+  retries: 5
+  delay: 5
+  until: yum_res is success
+
+- name: Install PostgreSQL packages
+  ansible.builtin.package:
+    name: "{{ _postgresql_packages }}"
+  register: package_res
+  retries: 5
+  delay: 5
+  until: package_res is success
+
+- name: Set PostgreSQL environment variables
+  ansible.builtin.template:
+    src: postgres.sh.j2
+    dest: /etc/profile.d/postgres.sh
+    mode: "0644"
+  notify: Restart postgresql
+
+- name: Ensure PostgreSQL data directory exists
+  ansible.builtin.file:
+    path: "{{ _postgresql_data_dir }}"
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    state: directory
+    mode: "0700"
+
+- name: Check if PostgreSQL database is initialized
+  ansible.builtin.stat:
+    path: "{{ _postgresql_data_dir }}/PG_VERSION"
+  register: pgdata_dir_version
+
+- name: Ensure PostgreSQL database is initialized
+  ansible.builtin.command: "{{ _postgresql_bin_path }}/initdb -D {{ _postgresql_data_dir }}"
+  when: not pgdata_dir_version.stat.exists
+  become: true
+  become_user: "{{ postgresql_user }}"
+  vars:
+    ansible_ssh_pipelining: true
+  changed_when: false
+
+- name: Ensure PostgreSQL log directory exists.
+  ansible.builtin.file:
+    path: "{{ postgresql_log_dir }}"
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    state: directory
+    mode: "0700"
+  vars:
+    postgresql_log_dir: "{{ (postgresql_global_config_options | items2dict(key_name='option', value_name='value')).log_directory }}"
+
+- name: Configure global settings
+  ansible.builtin.lineinfile:
+    dest: "{{ _postgresql_config_path }}/postgresql.conf"
+    regexp: "^#?{{ item.option }}.+$"
+    line: "{{ item.option }} = '{{ item.value }}'"
+    state: "{{ item.state | default('present') }}"
+    mode: "0644"
+  loop: "{{ postgresql_global_config_options }}"
+  loop_control:
+    label: "{{ item.option }}"
+  notify: Restart postgresql
+
+- name: Configure host based authentication
+  ansible.builtin.template:
+    src: "pg_hba.conf.j2"
+    dest: "{{ _postgresql_config_path }}/pg_hba.conf"
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    mode: "0600"
+  notify: Restart postgresql
+  when: postgresql_hba_entries | length > 0
+
+- name: Verify PostgreSQL conf.d directory
+  ansible.builtin.file:
+    path: "{{ _postgresql_config_include_path }}"
+    state: directory
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    mode: "0755"
+
+- name: Copy postgresql.conf override files
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ _postgresql_config_include_path }}/{{ item.src | basename }}"
+    owner: root
+    group: root
+    mode: "0644"
+    force: "{{ item.force | default(false) }}"
+  loop: "{{ postgresql_config_include_files }}"
+  loop_control:
+    label: "{{ item.src }}"
+  notify: Restart postgresql
+
+- name: Ensure PostgreSQL unix socket dirs exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    mode: "{{ _postgresql_unix_socket_mode }}"
+  loop: "{{ postgresql_unix_socket_directories }}"
+
+- name: Include service tasks
+  ansible.builtin.include_tasks: service.yml
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
