@@ -1,0 +1,29 @@
+---
+- name: Manage PostgreSQL database privileges
+  community.postgresql.postgresql_privs:
+    db: "{{ _database.db_connect | default(postgresql_default_database) }}"
+    role: "{{ _role.name }}"
+    privs: "{{ _role.privs | default(omit) }}"
+    objs: "{{ _role.objs | default(omit) }}"
+    schema: "{{ _role.schema | default(omit) }}"
+    type: "{{ _role.type | default(omit) }}"
+    grant_option: "{{ _role.grant_option | default(omit) }}"
+    login_host: "{{ _database.login_host | default('localhost') }}"
+    login_password: "{{ _database.login_password | default(omit) }}"
+    login_user: "{{ _database.login_user | default(postgresql_user) }}"
+    login_unix_socket: "{{ item.login_unix_socket | default(postgresql_unix_socket_directories | first) }}"
+    port: "{{ _database.port | default(postgresql_port) }}"
+    session_role: "{{ _database.session_role | default(omit) }}"
+    ssl_mode: "{{ _database.ssl_mode | default(omit) }}"
+    state: "{{ _role.state | default('present') }}"
+  vars:
+    ansible_ssh_pipelining: true
+    _database: "{{ item.0 }}"
+    _role: "{{ item.1 }}"
+  loop: "{{ postgresql_databases | subelements('roles', skip_missing='yes') }}"
+  loop_control:
+    label: "{{ _database.name }}"
+  become: true
+  become_user: "{{ postgresql_user }}"
+  environment:
+    PGOPTIONS: "{{ (postgresql_auth_method == 'scram-sha-256') | ternary('-c password_encryption=scram-sha-256', '') }}"

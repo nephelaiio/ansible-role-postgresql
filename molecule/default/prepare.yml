@@ -1,16 +1,17 @@
 ---
-- name: Prepare
-
-  hosts: all
-
-  gather_facts: true
-
+- name: Prepare Ansible controller
+  hosts: localhost
   become: true
-
   tasks:
+    - name: Load required kernel modules into ansible controller
+      community.general.modprobe:
+        name: ip6table_filter
+        state: present
 
-    - name: Update apt package cache
-      ansible.builtin.apt:
-        update_cache: yes
-      when: ansible_os_family == 'Debian'
-      changed_when: false
+- name: Prepare instances
+  hosts: all
+  become: true
+  tasks:
+    - name: Configure postgresql repository
+      ansible.builtin.include_role:
+        name: nephelaiio.postgresql_repo
