@@ -2,8 +2,8 @@
 - name: Manage install tasks
   ansible.builtin.include_tasks: install.yml
 
-- name: Manage user tasks
-  ansible.builtin.include_tasks: users.yml
+- name: Manage role tasks
+  ansible.builtin.include_tasks: roles.yml
 
 - name: Manage database tasks
   ansible.builtin.include_tasks: databases/manage.yml

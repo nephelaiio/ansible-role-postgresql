@@ -1,0 +1,48 @@
+---
+- name: Manage PostgreSQL users
+  community.postgresql.postgresql_user:
+    name: "{{ item.name }}"
+    password: "{{ item.password | default(omit) }}"
+    login_host: "{{ item.login_host | default('localhost') }}"
+    login_password: "{{ item.login_password | default(omit) }}"
+    login_user: "{{ item.login_user | default(postgresql_user) }}"
+    login_unix_socket: "{{ item.login_unix_socket | default(postgresql_unix_socket_directories | first) }}"
+    no_password_changes: "{{ item.no_password_changes | default(omit) }}"
+    expires: "{{ item.expires | default(omit) }}"
+    port: "{{ item.port | default(postgresql_port) }}"
+    role_attr_flags: "{{ item.role_attr_flags | default(omit) }}"
+  loop: "{{ postgresql_roles }}"
+  loop_control:
+    label: "{{ item.name }}"
+  no_log: "{{ postgresql_nolog }}"
+  become: true
+  become_user: "{{ postgresql_user }}"
+  vars:
+    ansible_ssh_pipelining: true
+  environment:
+    PGOPTIONS: "{{ (postgresql_auth_method == 'scram-sha-256') | ternary('-c password_encryption=scram-sha-256', '') }}"
+
+- name: Manage PostgreSQL user group memberships
+  community.postgresql.postgresql_membership:
+    db: "{{ _user.database | default(postgresql_default_database) }}"
+    login_host: "{{ _user.login_host | default('localhost') }}"
+    login_password: "{{ _user.login_password | default(omit) }}"
+    login_user: "{{ _user.login_user | default(postgresql_user) }}"
+    login_unix_socket: "{{ _user.login_unix_socket | default(postgresql_unix_socket_directories | first) }}"
+    port: "{{ _user.port | default(postgresql_port) }}"
+    state: "{{ _group_state | default('present') }}"
+    group: "{{ _group.name }}"
+    target_role: "{{ _user.name }}"
+  vars:
+    _user: "{{ item.0 }}"
+    _group: "{{ item.1 }}"
+    _group_state: "{{ _group.state | default('present') }}"
+    ansible_ssh_pipelining: true
+  loop: "{{ postgresql_roles | subelements('groups', skip_missing='yes') }}"
+  loop_control:
+    label: "{{ _user.name }} - {{ _group.name }} - {{ _group_state }}"
+  no_log: "{{ postgresql_nolog }}"
+  become: true
+  become_user: "{{ postgresql_user }}"
+  environment:
+    PGOPTIONS: "{{ (postgresql_auth_method == 'scram-sha-256') | ternary('-c password_encryption=scram-sha-256', '') }}"

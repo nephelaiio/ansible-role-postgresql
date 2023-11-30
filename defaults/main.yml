@@ -61,6 +61,6 @@ postgresql_data_dir_default:
 postgresql_bin_path_default:
   default: "/usr/bin"
 postgresql_nolog: true
-postgresql_users: []
+postgresql_roles: []
 postgresql_default_database: postgres
 postgresql_databases: []

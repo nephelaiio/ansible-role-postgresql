@@ -27,14 +27,29 @@ provisioner:
     hosts:
       all:
         vars:
-          postgresql_users:
+          postgresql_user: postgres
+          postgresql_roles:
+            - name: admin
+              password: admin
+              groups:
+                - name: admins
             - name: user
               password: user
+              groups:
+                - name: read_only
+            - name: admins
+              role_attr_flags: "NOLOGIN"
+            - name: read_only
+              role_attr_flags: "NOLOGIN"
           postgresql_databases:
             - name: database
               encoding: "UNICODE"
               roles:
-                - name: user
+                - name: admins
+                  privs: ALL
+                  type: database
+                  objs: database
+                - name: read_only
                   privs: ALL
                   type: database
                   objs: database
