@@ -64,3 +64,5 @@ postgresql_nolog: true
 postgresql_roles: []
 postgresql_default_database: postgres
 postgresql_databases: []
+postgresql_locales:
+  - "en_US.UTF-8"

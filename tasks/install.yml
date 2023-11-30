@@ -7,12 +7,12 @@
       ansible.builtin.set_fact:
         _postgresql_packages: "{{ postgresql_packages | default(postgresql_packages_default | nephelaiio.plugins.sorted_get(overrides)) }}"
         _postgresql_config_path: "{{ postgresql_config_path | default(postgresql_config_path_default | nephelaiio.plugins.sorted_get(overrides)) }}"
-        _postgresql_config_include_path: "{{ _psql_config_inc_path }}"
+        _postgresql_config_include_path: "{{ _psql_conf_inc_path }}"
         _postgresql_data_dir: "{{ postgresql_data_dir | default(postgresql_data_dir_default | nephelaiio.plugins.sorted_get(overrides)) }}"
         _postgresql_bin_path: "{{ postgresql_bin_path | default(postgresql_bin_path_default | nephelaiio.plugins.sorted_get(overrides)) }}"
         _postgresql_unix_socket_mode: "{{ _unix_socket_mode }}"
       vars:
-        _psql_config_inc_path: "{{ postgresql_config_include_path | default(postgresql_config_include_path_default | nephelaiio.plugins.sorted_get(overrides)) }}"
+        _psql_conf_inc_path: "{{ postgresql_config_include_path | default(postgresql_config_include_path_default | nephelaiio.plugins.sorted_get(overrides)) }}"
         _unix_socket_mode: "{{ postgresql_unix_socket_mode | default(postgresql_unix_socket_mode_default | nephelaiio.plugins.sorted_get(overrides)) }}"
         overrides:
           - "{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}"
@@ -44,13 +44,45 @@
   delay: 5
   until: yum_res is success
 
-- name: Install PostgreSQL packages
-  ansible.builtin.package:
-    name: "{{ _postgresql_packages }}"
-  register: package_res
-  retries: 5
-  delay: 5
-  until: package_res is success
+- name: Release package holds
+  ansible.builtin.include_tasks: lock.yml
+  vars:
+    _lock_state: install
+
+- name: Install packages and configure package holds
+  block:
+
+    - name: Install PostgreSQL packages
+      ansible.builtin.package:
+        name: "{{ _postgresql_packages }}"
+      register: package_res
+      retries: 5
+      delay: 5
+      until: package_res is success
+
+  always:
+
+    - name: Configure package holds
+      ansible.builtin.include_tasks: lock.yml
+      vars:
+        _lock_state: hold
+
+- name: Manage Debian locates
+  when: ansible_os_family == "Debian"
+  block:
+
+    - name: Ensure locales are present
+      community.general.locale_gen:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ postgresql_locales }}"
+      register: locale_gen_result
+
+    - name: Restart PostgreSQL after new locales are generated
+      ansible.builtin.include_tasks: service.yml
+      vars:
+        postgresql_service_state: restarted
+      when: locale_gen_result.changed
 
 - name: Set PostgreSQL environment variables
   ansible.builtin.template:
