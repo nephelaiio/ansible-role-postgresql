@@ -83,6 +83,7 @@
       vars:
         postgresql_service_state: restarted
       when: locale_gen_result.changed
+      tags: skip_ansible_lint
 
 - name: Set PostgreSQL environment variables
   ansible.builtin.template:
