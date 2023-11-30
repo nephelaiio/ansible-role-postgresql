@@ -103,15 +103,21 @@
     label: "{{ item.option }}"
   notify: Restart postgresql
 
-- name: Configure host based authentication
-  ansible.builtin.template:
-    src: "pg_hba.conf.j2"
+- name: Manage host based authentication
+  community.postgresql.postgresql_pg_hba:
     dest: "{{ _postgresql_config_path }}/pg_hba.conf"
+    contype: "{{ item.type }}"
+    databases: "{{ item.databases }}"
+    users: "{{ item.users }}"
+    source: "{{ item.address | default(omit) }}"
+    method: "{{ item.method }}"
+    create: "{{ postgresql_hba_manage | default(true) }}"
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
-    mode: "0600"
+  loop: "{{ postgresql_hba_entries }}"
+  loop_control:
+    label: "Databases: {{ item.databases }} - Users: {{ item.users }} - Auth: {{ item.method }}"
   notify: Restart postgresql
-  when: postgresql_hba_entries | length > 0
 
 - name: Verify PostgreSQL conf.d directory
   ansible.builtin.file:

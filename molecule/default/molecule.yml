@@ -23,5 +23,20 @@ provisioner:
   config_options:
     defaults:
       callbacks_enabled: ansible.posix.profile_tasks
+  inventory:
+    hosts:
+      all:
+        vars:
+          postgresql_users:
+            - name: user
+              password: user
+          postgresql_databases:
+            - name: database
+              encoding: "UNICODE"
+              roles:
+                - name: user
+                  privs: ALL
+                  type: database
+                  objs: database
 verifier:
   name: ansible

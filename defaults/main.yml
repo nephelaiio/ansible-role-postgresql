@@ -38,23 +38,23 @@ postgresql_unix_socket_mode_default:
 postgresql_auth_method: "{{ ansible_fips | ternary('scram-sha-256', 'md5') }}"
 postgresql_hba_entries:
   - type: local
-    database: all
-    user: all
-    auth_method: peer
+    databases: all
+    users: postgres
+    method: peer
   - type: local
-    database: all
-    user: all
-    auth_method: peer
+    databases: all
+    users: all
+    method: peer
   - type: host
-    database: all
-    user: all
+    databases: all
+    users: all
     address: '127.0.0.1/32'
-    auth_method: "{{ postgresql_auth_method }}"
+    method: "{{ postgresql_auth_method }}"
   - type: host
-    database: all
-    user: all
+    databases: all
+    users: all
     address: '::1/128'
-    auth_method: "{{ postgresql_auth_method }}"
+    method: "{{ postgresql_auth_method }}"
 postgresql_data_dir_default:
   redhat: "/var/lib/pgsql/data"
   default: "/var/lib/postgresql/{{ postgresql_version }}/main"
