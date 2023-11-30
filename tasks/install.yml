@@ -38,6 +38,7 @@
     name:
       - gnupg2
     update_cache: true
+    disablerepo: postgresql
   when: ansible_os_family | lower == "redhat"
   register: yum_res
   retries: 5
