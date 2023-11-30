@@ -10,6 +10,11 @@ postgresql_packages_default:
     - "postgresql-{{ postgresql_version }}"
     - "postgresql-client-{{ postgresql_version }}"
     - "python3-psycopg2"
+  redhat:
+    - "curl"
+    - "postgresql-{{ postgresql_version }}-server"
+    - "postgresql-{{ postgresql_version }}"
+    - "python3-psycopg2"
 postgresql_port: 5432
 postgresql_service_name: postgresql
 postgresql_service_state: started
