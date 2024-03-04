@@ -1,6 +1,12 @@
 ---
-_postgresql_package_default:
-  default:
-    - postgresql
-
-postgresql_state: present
+postgresql_release: 16
+postgresql_package_name:
+  - "postgresql-{{ postgresql_release }}"
+  - "postgresql-client-{{ postgresql_release }}"
+  - "acl"
+postgresql_package_state: present
+postgresql_service_name: "postgresql@{{ postgresql_release }}-main"
+postgresql_service_state: started
+postgresql_service_enabled: true
+postgresql_db_init: true
+postgresql_db_path: /var/lib/postgresql

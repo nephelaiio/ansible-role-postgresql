@@ -1,0 +1,40 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+    - name: Gather package facts
+      ansible.builtin.package_facts:
+
+    - name: Set postgresql package facts
+      ansible.builtin.set_fact:
+        postgresql_server_packages: "{{ packages.keys() | select('match', '^postgresql-[0-9]+$') }}"
+        postgresql_client_packages: "{{ packages.keys() | select('match', '^postgresql-client-[0-9]+$') }}"
+
+    - name: Verify package deployment
+      ansible.builtin.assert:
+        that:
+          - postgresql_server_packages | length == 1
+          - postgresql_client_packages | length == 1
+
+    - name: Set postgresql service facts
+      ansible.builtin.set_fact:
+        postgresql_service_release: "{{ _release }}"
+        postgresql_service: "{{ _service }}"
+      vars:
+        _release: "{{ postgresql_server_packages | first | regex_replace('^postgresql-', '') }}"
+        _name: "postgresql@{{ _release }}-main.service"
+        _service: "{{ [_name] | map('extract', services) }}"
+
+    - name: Verify package deployment
+      ansible.builtin.assert:
+        that:
+          - postgresql_service | length == 1
+          - (postgresql_service | first).state  == 'running'
+          - (postgresql_service | first).status  == 'active'
+
+    - fail:
