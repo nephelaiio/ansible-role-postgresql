@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         scenario:
-          - name: default
+          - name: install
         image:
           - name: ubuntu2204
             command: /lib/systemd/systemd
