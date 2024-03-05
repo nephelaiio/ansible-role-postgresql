@@ -5,4 +5,4 @@
     state: "{{ postgresql_package_state }}"
 
 - name: Manage postgresql services
-  include_tasks: service.yml
+  ansible.builtin.include_tasks: service.yml
