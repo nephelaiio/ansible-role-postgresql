@@ -8,7 +8,7 @@
   block:
     - name: Install postgresql packages
       ansible.builtin.package:
-        name: "{{ _postgresql_package_name }}"
+        name: "{{ _postgresql_package }}"
         state: "{{ postgresql_package_state }}"
 
   always:

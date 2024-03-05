@@ -1,8 +1,9 @@
 ---
 - name: Set variable overrides
   ansible.builtin.set_fact:
-    _postgresql_package_name: "{{ postgresql_package_name | default(_default_package) }}"
-    _postgresql_service_name: "{{ postgresql_service_name | default(_default_service) }}"
+    _postgresql_package: "{{ postgresql_package_name | default(_default_package) }}"
+    _postgresql_service: "{{ postgresql_service_name | default(_default_service) }}"
   vars:
-    _default_package: "{{ _postgresql_package_name | nephelaiio.plugins.sorted_get(_postgresql_default_search) }}"
-    _default_service: "{{ _postgresql_service_name | nephelaiio.plugins.sorted_get(_postgresql_default_search) }}"
+    _default_search: "{{ _postgresql_default_search }}"
+    _default_package: "{{ _postgresql_package_name | nephelaiio.plugins.sorted_get(_default_search) }}"
+    _default_service: "{{ _postgresql_service_name | nephelaiio.plugins.sorted_get(_default_search) }}"
