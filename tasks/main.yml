@@ -1,7 +1,13 @@
 ---
+- name: Set variable overrides
+  ansible.builtin.set_fact:
+    _postgresql_package_name: "{{ postgresql_package_name | default(_default_package) }}"
+  vars:
+    _default_package: "{{ _postgresql_package_name | nephelaiio.plugins.sorted_get(_postgresql_default_search) }}"
+
 - name: Install postgresql packages
   ansible.builtin.package:
-    name: "{{ postgresql_package_name }}"
+    name: "{{ _postgresql_package_name }}"
     state: "{{ postgresql_package_state }}"
 
 - name: Manage postgresql services
