@@ -1,9 +1,6 @@
 ---
-- name: Set variable overrides
-  ansible.builtin.set_fact:
-    _postgresql_service_name: "{{ postgresql_service_name | default(_default_service) }}"
-  vars:
-    _default_service: "{{ _postgresql_service_name | nephelaiio.plugins.sorted_get(_postgresql_default_search) }}"
+- name: Set installation facts
+  ansible.builtin.include_tasks: vars.yml
 
 - name: Manage postgresql service
   ansible.builtin.service:
