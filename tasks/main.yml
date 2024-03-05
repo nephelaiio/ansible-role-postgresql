@@ -2,8 +2,14 @@
 - name: Set installation facts
   ansible.builtin.include_tasks: vars.yml
 
+- name: Verify installation parameters
+  ansible.builtin.include_tasks: verify.yml
+
 - name: Install PostgreSQL services
   ansible.builtin.include_tasks: install.yml
+
+- name: Configure PostgreSQL services
+  ansible.builtin.include_tasks: configure.yml
 
 - name: Manage PostgreSQL services
   ansible.builtin.include_tasks: service.yml

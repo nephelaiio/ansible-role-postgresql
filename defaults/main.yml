@@ -5,6 +5,8 @@ postgresql_service_state: started
 postgresql_service_enabled: true
 postgresql_db_init: true
 postgresql_db_path: /var/lib/postgresql
+postgresql_user: postgres
+postgresql_group: postgres
 
 _postgresql_package_name:
   debian:
@@ -22,3 +24,8 @@ _postgresql_default_search:
   - "{{ ansible_distribution | lower }}"
   - "{{ ansible_os_family | lower }}"
   - "default"
+_postgresql_default_datadir: "/var/lib/postgresql/data"
+_postgresql_default_config:
+  data_directory: "{{ _postgresql_default_datadir }}"
+  hba_file: "{{ _postgresql_default_datadir }}/pg_hba.conf"
+  ident_file: "{{ _postgresql_default_datadir }}/pg_ident.conf"

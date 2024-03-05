@@ -1,0 +1,32 @@
+---
+- name: Set configuration facts
+  ansible.builtin.set_fact:
+    _postgresql_datadir: "{{ _postgresql_config.data_directory }}"
+    _postgresql_hba: "{{ _postgresql_config.hba_file }}"
+    _postgresql_ident: "{{ _postgresql_config.ident_file }}"
+
+- name: Create PostgreSQL data directory
+  ansible.builtin.file:
+    path: "{{ _postgresql_datadir }}"
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    state: directory
+    mode: "0700"
+
+- name: Check if PostgreSQL database is initialized
+  ansible.builtin.stat:
+    path: "{{ _postgresql_datadir }}/PG_VERSION"
+  register: pgdatadir_stat
+
+- name: Ensure PostgreSQL database is initialized
+  ansible.builtin.command: "/usr/bin/initdb -D {{ _postgresql_datadir }}"
+  when: not pgdatadir_stat.stat.exists
+  become: true
+  become_user: "{{ postgresql_user }}"
+
+- name: Set PostgreSQL environment variables
+  ansible.builtin.template:
+    src: postgres.sh.j2
+    dest: /etc/profile.d/postgres.sh
+    mode: "0644"
+  notify: Restart postgresql

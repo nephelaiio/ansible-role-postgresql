@@ -1,0 +1,11 @@
+---
+- name: Check datadir configuration
+  ansible.builtin.assert:
+    that:
+      - _hba_attr in _postgresql_config
+      - _postgresql_config[_datadir_attr] == _postgresql_datadir
+    fail_msg: postgresql_datadir attribute must match requested configuration
+    vars:
+      _hba_attr: hba_file
+      _datadir_attr: data_directory
+      _ident_attr: ident_file
