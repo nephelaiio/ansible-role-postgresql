@@ -36,5 +36,3 @@
           - postgresql_service | length == 1
           - (postgresql_service | first).state  == 'running'
           - (postgresql_service | first).status  == 'active'
-
-    - fail:
