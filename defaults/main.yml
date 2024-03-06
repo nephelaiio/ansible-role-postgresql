@@ -8,6 +8,7 @@ postgresql_db_path: /var/lib/postgresql
 postgresql_user: postgres
 postgresql_group: postgres
 postgresql_datadir: "/var/lib/postgresql/data"
+postgresql_roles: []
 
 __postgresql_package_name:
   debian:

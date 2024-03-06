@@ -10,3 +10,6 @@
 
 - name: Manage PostgreSQL services
   ansible.builtin.include_tasks: service.yml
+
+- name: Manage PostgreSQL roles
+  ansible.builtin.include_tasks: roles.yml
