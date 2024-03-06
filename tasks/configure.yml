@@ -45,7 +45,7 @@
 - name: Create service tempfile
   ansible.builtin.tempfile:
     prefix: systemd
-  reigster: _systemd_tempfile
+  register: _systemd_tempfile
   changed_when: false
 
 - name: Manage PostgreSQL service file

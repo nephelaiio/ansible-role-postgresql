@@ -19,4 +19,4 @@ galaxy_info:
   galaxy_tags: ['postgresql']
 
 dependencies:
-  - nephelaiio.postgresql_repo
+  - name: nephelaiio.postgresql_repo
