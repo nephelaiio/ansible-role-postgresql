@@ -24,14 +24,10 @@
     state: directory
     mode: 0700
 
-- name: Check if PostgreSQL database is initialized
-  ansible.builtin.stat:
-    path: "{{ _postgresql_datadir }}/PG_VERSION"
-  register: pgdatadir_stat
-
 - name: Initialize PostgreSQL database
-  ansible.builtin.command: "{{ _postgresql_bindir }}/initdb -D {{ _postgresql_datadir }}"
-  when: not pgdatadir_stat.stat.exists
+  ansible.builtin.command:
+    cmd: "{{ _postgresql_bindir }}/initdb -D {{ _postgresql_datadir }}"
+    creates: "{{ _postgresql_datadir }}/PG_VERSION"
   become: true
   become_user: "{{ postgresql_user }}"
 
@@ -60,6 +56,9 @@
         src: "/lib/systemd/system/postgresql-{{ postgresql_release }}.service"
         dest: "{{ _systemd_tempfile.path }}"
         remote_src: true
+        owner: root
+        group: root
+        mode: 0644
       changed_when: false
 
     - name: Edit service file configuration
@@ -73,6 +72,9 @@
         dest: "{{ _systemd_tempfile.path }}"
         src: "/lib/systemd/system/postgresql-{{ postgresql_release }}.service"
         remote_src: true
+        owner: root
+        group: root
+        mode: 0644
 
   always:
     - name: Destroy systemd tempfile
