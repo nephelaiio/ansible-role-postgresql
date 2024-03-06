@@ -1,20 +1,9 @@
 ---
-- name: Set environment facts
-  ansible.builtin.set_fact:
-    _pgoptions: "{{ (_method == _scram_sha256) | ternary(_scram_option, '') }}"
-  vars:
-    _scram_sha256: "scram-sha-256"
-    _scram_option: '-c password_encryption={{ _scram_sha256 }}'
-    _method: "{{ postgresql_auth_method }}"
-
 - name: Manage PostgreSQL roles
   community.postgresql.postgresql_user:
     name: "{{ item.name }}"
     password: "{{ item.password | default(omit) }}"
     login_host: "{{ item.login_host | default('localhost') }}"
-    login_password: "{{ item.login_password | default(omit) }}"
-    login_user: "{{ item.login_user }}"
-    login_unix_socket: "{{ item.login_unix_socket | default(postgresql_unix_socket_directories | first) }}"
     no_password_changes: "{{ item.no_password_changes | default(omit) }}"
     expires: "{{ item.expires | default(omit) }}"
     port: "{{ item.port | default(postgresql_port) }}"
@@ -25,16 +14,13 @@
   become: true
   become_user: "{{ postgresql_user }}"
   environment:
-    PGOPTIONS: "{{ _pgoptions }}"
+    PGOPTIONS: "{{ _postgresql_pgoptions }}"
   no_log: "{{ postgresql_nolog }}"
 
 - name: Manage PostgreSQL role group memberships
   community.postgresql.postgresql_membership:
     db: "{{ _role.database | default(postgresql_default_database) }}"
     login_host: "{{ _role.login_host | default('localhost') }}"
-    login_password: "{{ _role.login_password | default(omit) }}"
-    login_user: "{{ _role.login_user }}"
-    login_unix_socket: "{{ _role.login_unix_socket | default(postgresql_unix_socket_directories | first) }}"
     port: "{{ _role.port | default(postgresql_port) }}"
     state: "{{ _group_state | default('present') }}"
     group: "{{ _group_name }}"
@@ -49,5 +35,5 @@
   become: true
   become_user: "{{ postgresql_user }}"
   environment:
-    PGOPTIONS: "{{ _pgoptions }}"
+    PGOPTIONS: "{{ _postgresql_pgoptions }}"
   no_log: "{{ postgresql_nolog }}"
