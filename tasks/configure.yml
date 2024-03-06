@@ -1,9 +1,37 @@
 ---
-- name: Manage PostgreSQL locales
+- name: Manage Debian locale
   community.general.locale_gen:
     name: "{{ postgresql_locale }}"
     state: present
+  when: ansible_os_family == 'Debian'
   notify: postgresql_restart
+
+- name: Manage RedHat locale
+  when: ansible_os_family == 'RedHat'
+  block:
+    - name: Query available locale
+      command: localectl list-locales
+      changed_when: false
+      register: _locale_query_list
+
+    - name: Query configured locale
+      command: localectl status
+      changed_when: false
+      register: _locale_query_config
+
+    - name: Check requested locale
+      ansible.builtin.assert:
+        that: postgresql_locale in _locale_query_list.stdout_lines
+
+    - name: Set locale configuration facts
+      ansible.builtin.set_fact:
+        _locale_config: "{{ _locale_query_config | regex_search('LANG=([^\n]+)', '\\1') | first }}"
+
+    - name: Configure locale
+      ansible.builtin.command:
+        cmd: localectl set-locale LANG={{ postgresql_locale }}
+      when: postgresql_locale != _locale_config
+      changed_when: postgresql_locale != _locale_config
 
 - name: Create PostgreSQL data directory
   ansible.builtin.file:

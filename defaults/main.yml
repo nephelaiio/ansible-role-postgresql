@@ -21,6 +21,7 @@ __postgresql_package_name:
   redhat:
     - "postgresql{{ postgresql_release }}-server"
     - "postgresql{{ postgresql_release }}"
+    - "glibc-langpack-{{ postgresql_locale | regex_replace('_.*', '') }}"
 __postgresql_service_name:
   debian: "postgresql@{{ postgresql_release }}-main"
   redhat: "postgresql-{{ postgresql_release }}"
