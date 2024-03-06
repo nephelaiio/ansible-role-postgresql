@@ -73,4 +73,4 @@
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
     mode: 0644
-  notify: postgresql_restart
+  notify: postgresql_reload

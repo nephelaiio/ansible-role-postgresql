@@ -87,7 +87,7 @@
           Existing DBs are [{{ _existing_dbs | join(',') }}]
       vars:
         _existing_dbs: "{{ postgresql_info.databases | dict2items | map(attribute='key') }}"
-        _requested_dbs: "{{ postgresql_databases | map(attribute='name') }}"
+        _requested_dbs: "{{ postgresql_databases | default([]) | map(attribute='name') }}"
         _missing_dbs: "{{ _requested_dbs | reject('in', _existing_dbs) }}"
 
     - name: Verify requested roles
@@ -98,7 +98,7 @@
           Existing roles are [{{ _existing_roles | join(',') }}]
       vars:
         _existing_roles: "{{ postgresql_info.roles | dict2items | map(attribute='key') }}"
-        _requested_roles: "{{ postgresql_roles | map(attribute='name') }}"
+        _requested_roles: "{{ postgresql_roles | default([]) | map(attribute='name') }}"
         _missing_roles: "{{ _requested_roles | reject('in', _existing_roles) }}"
 
     - name: Verify user groups
@@ -110,4 +110,4 @@
         _role_groups: "{{ _existing_roles | rejectattr('value.canlogin') | map(attribute='key') }}"
       loop_control:
         label: "{{ item.name }}"
-      loop: "{{ postgresql_roles | selectattr('groups', 'defined') }}"
+      loop: "{{ postgresql_roles | default([]) | selectattr('groups', 'defined') }}"
