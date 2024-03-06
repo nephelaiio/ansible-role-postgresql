@@ -1,9 +1,8 @@
 ---
 - name: Manage PostgreSQL locales
   community.general.locale_gen:
-    name: en_US.UTF-8
+    name: "{{ postgresql_locale }}"
     state: present
-  when: ansible_os_family == 'Debian'
   notify: postgresql_restart
 
 - name: Create PostgreSQL data directory
