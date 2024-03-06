@@ -6,7 +6,6 @@
     login_host: "{{ item.login_host | default('localhost') }}"
     no_password_changes: "{{ item.no_password_changes | default(omit) }}"
     expires: "{{ item.expires | default(omit) }}"
-    port: "{{ item.port | default(postgresql_port) }}"
     role_attr_flags: "{{ item.role_attr_flags | default(omit) }}"
   loop_control:
     label: "{{ item.name }}"
@@ -21,7 +20,6 @@
   community.postgresql.postgresql_membership:
     db: "{{ _role.database | default(postgresql_default_database) }}"
     login_host: "{{ _role.login_host | default('localhost') }}"
-    port: "{{ _role.port | default(postgresql_port) }}"
     state: "{{ _group_state | default('present') }}"
     group: "{{ _group_name }}"
     target_role: "{{ _role.name }}"

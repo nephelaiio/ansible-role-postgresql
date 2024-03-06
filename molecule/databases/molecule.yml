@@ -31,6 +31,7 @@ provisioner:
     hosts:
       all:
         vars:
+          postgresql_nolog: false
           postgresql_roles:
             - name: admin
               password: admin

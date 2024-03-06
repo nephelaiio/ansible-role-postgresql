@@ -1,4 +1,7 @@
 ---
+- name: Set installation facts
+  ansible.builtin.include_tasks: vars.yml
+
 - name: Manage PostgreSQL databases
   community.postgresql.postgresql_db:
     name: "{{ item.name }}"
@@ -15,7 +18,6 @@
   loop: "{{ postgresql_databases }}"
   become: true
   become_user: "{{ postgresql_user }}"
-  no_log: "{{ postgresql_nolog }}"
 
 - name: Manage PostgreSQL database privileges
   community.postgresql.postgresql_privs:
@@ -27,7 +29,6 @@
     type: "{{ _role.type | default(omit) }}"
     grant_option: "{{ _role.grant_option | default(omit) }}"
     login_host: "{{ _database.login_host | default('localhost') }}"
-    port: "{{ _database.port | default(postgresql_port) }}"
     session_role: "{{ _database.session_role | default(omit) }}"
     ssl_mode: "{{ _database.ssl_mode | default(omit) }}"
     state: "{{ _role.state | default('present') }}"
