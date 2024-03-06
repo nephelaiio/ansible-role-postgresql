@@ -50,7 +50,7 @@
 
 - name: Manage PostgreSQL main config
   ansible.builtin.template:
-    stc: postgres.conf.j2
+    src: postgres.conf.j2
     dest: "{{ _postgresql_datadir }}/postgresql.conf"
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
