@@ -2,7 +2,7 @@
 - name: Set installation facts
   ansible.builtin.include_tasks: vars.yml
 
-- name: Manage postgresql service
+- name: Manage PostgreSQL service
   ansible.builtin.service:
     name: "{{ _postgresql_service }}"
     state: "{{ postgresql_service_state }}"

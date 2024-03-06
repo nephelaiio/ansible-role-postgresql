@@ -1,10 +1,11 @@
 ---
-- name: Set variable overrides
+- name: Set global facts
   ansible.builtin.set_fact:
     _postgresql_package: "{{ postgresql_package_name | default(_default_package) }}"
     _postgresql_service: "{{ postgresql_service_name | default(_default_service) }}"
     _postgresql_config: "{{ postgresql_config | default(__postgresql_config) }}"
     _postgresql_bindir: "{{ __postgresql_bindir | nephelaiio.plugins.sorted_get(_default_search) }}"
+    _postgresql_datadir_attr: data_directory
   vars:
     _default_search: "{{ __postgresql_os_search }}"
     _default_package: "{{ __postgresql_package_name | nephelaiio.plugins.sorted_get(_default_search) }}"

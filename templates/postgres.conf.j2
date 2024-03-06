@@ -1,3 +1,3 @@
-{% for k, v in _postgresql_conf %}
-{{ k }} = {{ v }}
+{% for x in _config %}
+{{ x.key }} = {{ x.value }}
 {% endfor %}

@@ -1,18 +1,14 @@
 ---
-- name: Check configuration attribute facts
-  ansible.builtin.set_fact:
-    _postgresql_datadir_attr: data_directory
-
 - name: Check postgres configuration attributes
   ansible.builtin.assert:
-    that:
-      - _postgresql_datadir_attr in _postgresql_config
+    that: _postgresql_datadir_attr in _postgresql_config
 
 - name: Set configuration facts
   ansible.builtin.set_fact:
     _postgresql_datadir: "{{ _postgresql_config.data_directory }}"
     _postgresql_hba: "{{ _postgresql_config.hba_file }}"
     _postgresql_ident: "{{ _postgresql_config.ident_file }}"
+    _postgresql_unit: "/etc/systemd/system/{{ _postgresql_service }}.service"
 
 - name: Check datadir configuration
   ansible.builtin.assert:
@@ -39,15 +35,6 @@
   become: true
   become_user: "{{ postgresql_user }}"
 
-- name: Set PostgreSQL environment variables
-  ansible.builtin.template:
-    src: postgres.sh.j2
-    dest: /etc/profile.d/postgres.sh
-    mode: 0644
-    owner: root
-    group: root
-  notify: postgresql_restart
-
 - name: Manage PostgreSQL main config
   ansible.builtin.template:
     src: postgres.conf.j2
@@ -55,3 +42,41 @@
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
     mode: 0644
+  vars:
+    _config: "{{ _postgresql_config | dict2items }}"
+  notify: postgresql_restart
+
+- name: Create service tempfile
+  ansible.builtin.tempfile:
+    prefix: systemd
+  reigster: _systemd_tempfile
+  changed_when: false
+
+- name: Manage PostgreSQL service file
+  when: ansible_os_family == 'RedHat'
+  block:
+    - name: Copy master service file
+      ansible.builtin.copy:
+        src: "/lib/systemd/system/postgresql-{{ postgresql_release }}.service"
+        dest: "{{ _systemd_tempfile.path }}"
+        remote_src: true
+      changed_when: false
+
+    - name: Edit service file configuration
+      ansible.builtin.lineinfile:
+        path: "{{ _systemd_tempfile.path }}"
+        regexp: 'Environment=PGDATA=.*'
+        line: "Environment=PGDATA={{ _postgresql_datadir }}"
+
+    - name: Manage PostgreSQL service file
+      ansible.builtin.copy:
+        dest: "{{ _systemd_tempfile.path }}"
+        src: "/lib/systemd/system/postgresql-{{ postgresql_release }}.service"
+        remote_src: true
+
+  always:
+    - name: Destroy systemd tempfile
+      ansible.builtin.file:
+        path: "{{ _systemd_tepfile.path }}"
+        state: absent
+      changed_when: false
