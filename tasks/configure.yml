@@ -1,20 +1,32 @@
 ---
-- name: Check postgres configuration attributes
-  ansible.builtin.assert:
-    that: _postgresql_datadir_attr in _postgresql_config
+- name: Manage PostgreSQL service configuration
+  when: ansible_os_family == 'RedHat'
+  block:
+    - name: Set system facts
+      ansible.builtin.set_fact:
+        _postgresql_dropin: "/etc/systemd/system/{{ _postgresql_service_name }}.service.d/pgdata.conf"
 
-- name: Set configuration facts
-  ansible.builtin.set_fact:
-    _postgresql_datadir: "{{ _postgresql_config.data_directory }}"
-    _postgresql_hba: "{{ _postgresql_config.hba_file }}"
-    _postgresql_ident: "{{ _postgresql_config.ident_file }}"
-    _postgresql_unit: "/etc/systemd/system/{{ _postgresql_service }}.service"
+    - name: Create systemd drop-in directory
+      ansible.builtin.file:
+        path: "{{ _postgresql_dropin | dirname }}"
+        owner: root
+        group: root
+        state: directory
+        mode: 0755
 
-- name: Check datadir configuration
-  ansible.builtin.assert:
-    that:
-      - _postgresql_config[_postgresql_datadir_attr] == _postgresql_datadir
-    fail_msg: postgresql_datadir attribute must match requested configuration
+    - name: Create systemd drop-in configuration
+      ansible.builtin.copy:
+        dest: "{{ _postgresql_dropin }}"
+        content: |
+          [Service]
+          Environment=PGDATA={{ _postgresql_datadir }}
+        owner: root
+        group: root
+        mode: 0644
+      notify: daemon_reload
+
+    - name: Flush handlers
+      meta: flush_handlers
 
 - name: Create PostgreSQL data directory
   ansible.builtin.file:
@@ -31,54 +43,34 @@
   become: true
   become_user: "{{ postgresql_user }}"
 
-- name: Manage PostgreSQL main config
-  ansible.builtin.template:
-    src: postgres.conf.j2
-    dest: "{{ _postgresql_datadir }}/postgresql.conf"
+- name: Create PostgreSQL include directory
+  ansible.builtin.file:
+    path: "{{ _postgresql_includedir }}"
+    state: directory
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    mode: 0755
+
+- name: Manage PostgreSQL include config
+  ansible.builtin.copy:
+    dest: "{{ _postgresql_includefile }}"
+    content: "{{ postgresql_conf }}"
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
     mode: 0644
-  vars:
-    _config: "{{ _postgresql_config | dict2items }}"
+  when: postgresql_conf is defined
+
+- name: Destroy PostgreSQL include config
+  ansible.builtin.file:
+    path: "{{ _postgresql_includefile }}"
+    state: absent
+  when: postgresql_conf is not defined
+
+- name: Manage PostgreSQL main config
+  ansible.builtin.template:
+    src: postgres.conf.j2
+    dest: "{{ _postgresql_configfile }}"
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    mode: 0644
   notify: postgresql_restart
-
-- name: Create service tempfile
-  ansible.builtin.tempfile:
-    prefix: systemd
-  register: _systemd_tempfile
-  changed_when: false
-
-- name: Manage PostgreSQL service file
-  when: ansible_os_family == 'RedHat'
-  block:
-    - name: Copy master service file
-      ansible.builtin.copy:
-        src: "/lib/systemd/system/postgresql-{{ postgresql_release }}.service"
-        dest: "{{ _systemd_tempfile.path }}"
-        remote_src: true
-        owner: root
-        group: root
-        mode: 0644
-      changed_when: false
-
-    - name: Edit service file configuration
-      ansible.builtin.lineinfile:
-        path: "{{ _systemd_tempfile.path }}"
-        regexp: 'Environment=PGDATA=.*'
-        line: "Environment=PGDATA={{ _postgresql_datadir }}"
-
-    - name: Manage PostgreSQL service file
-      ansible.builtin.copy:
-        dest: "{{ _systemd_tempfile.path }}"
-        src: "/lib/systemd/system/postgresql-{{ postgresql_release }}.service"
-        remote_src: true
-        owner: root
-        group: root
-        mode: 0644
-
-  always:
-    - name: Destroy systemd tempfile
-      ansible.builtin.file:
-        path: "{{ _systemd_tepfile.path }}"
-        state: absent
-      changed_when: false

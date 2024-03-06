@@ -1,3 +1,5 @@
-{% for x in _config %}
-{{ x.key }} = {{ x.value }}
-{% endfor %}
+include_dir = '{{ _postgresql_includedir | basename }}'
+
+data_directory = '{{ _postgresql_datadir }}'
+hba_file = '{{ _postgresql_hba }}'
+ident_file = '{{ _postgresql_ident }}'

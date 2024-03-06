@@ -7,6 +7,7 @@ postgresql_db_init: true
 postgresql_db_path: /var/lib/postgresql
 postgresql_user: postgres
 postgresql_group: postgres
+postgresql_datadir: "/var/lib/postgresql/data"
 
 __postgresql_package_name:
   debian:
@@ -17,15 +18,13 @@ __postgresql_package_name:
     - "postgresql{{ postgresql_release }}"
 __postgresql_service_name:
   debian: "postgresql@{{ postgresql_release }}-main"
-  redhat: "postgresql-{{ postgresql_release }}-main"
-__postgresql_datadir: "/var/lib/postgresql/data"
-__postgresql_config:
-  data_directory: "{{ __postgresql_datadir }}"
-  hba_file: "{{ __postgresql_datadir }}/pg_hba.conf"
-  ident_file: "{{ __postgresql_datadir }}/pg_ident.conf"
+  redhat: "postgresql-{{ postgresql_release }}"
 __postgresql_bindir:
   redhat: "/usr/pgsql-{{ postgresql_release }}/bin"
-  default: ""
+  debian: "/usr/lib/postgresql/{{ postgresql_release }}/bin"
+__postgresql_configfile:
+  redhat: "{{ postgresql_datadir }}/postgresql.conf"
+  debian: "/etc/postgresql/{{ postgresql_release }}/main/postgresql.conf"
 
 __postgresql_os_search:
   - "{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}"
