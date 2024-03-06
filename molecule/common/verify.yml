@@ -81,23 +81,25 @@
 
     - name: Verify requested databases
       ansible.builtin.assert:
-        that: _requested_dbs | reject('in', _existing_dbs) | length == 0
+        that: _missing_dbs | length == 0
         fail_msg: |
-          Unable to find databases [{{ _configured_dbs | join(',') }}] on server.
+          Unable to find databases [{{ _requested_dbs | join(',') }}] on server.
           Existing DBs are [{{ _existing_dbs | join(',') }}]
       vars:
         _existing_dbs: "{{ postgresql_info.databases | dict2items | map(attribute='key') }}"
         _requested_dbs: "{{ postgresql_databases | map(attribute='name') }}"
+        _missing_dbs: "{{ _requested_dbs | reject('in', _existing_dbs) }}"
 
     - name: Verify requested roles
-      ansible.builtin.fail:
-        that: _configured_roles | reject('in', _existing_roles) | length == 0
+      ansible.builtin.assert:
+        that: _missing_roles | length == 0
         fail_msg: |
           Unable to find roles [{{ _missing_roles | join(',') }}] on server
           Existing roles are [{{ _existing_roles | join(',') }}]
       vars:
         _existing_roles: "{{ postgresql_info.roles | dict2items | map(attribute='key') }}"
         _requested_roles: "{{ postgresql_roles | map(attribute='name') }}"
+        _missing_roles: "{{ _requested_roles | reject('in', _existing_roles) }}"
 
     - name: Verify user groups
       ansible.builtin.assert:
