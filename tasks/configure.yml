@@ -10,12 +10,12 @@
   when: ansible_os_family == 'RedHat'
   block:
     - name: Query available locale
-      command: localectl list-locales
+      ansible.builtin.command: localectl list-locales
       changed_when: false
       register: _locale_query_list
 
     - name: Query configured locale
-      command: localectl status
+      ansible.builtin.command: localectl status
       changed_when: false
       register: _locale_query_config
 
