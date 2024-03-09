@@ -14,6 +14,16 @@ postgresql_auth_method: md5  # [ scram-sha-256 | md5 ]
 postgresql_default_database: postgres
 postgresql_locale: en_US.UTF-8
 
+__postgresql_conf_main:
+  redhat: "{{ postgresql_datadir }}/postgresql.conf"
+  debian: "/etc/postgresql/{{ postgresql_release }}/main/postgresql.conf"
+__postgresql_conf_ansible: 99-ansible.conf
+__postgresql_conf_standby: 99-standby.conf
+__postgresql_conf_local: 99-local.conf
+__postgresql_conf_exclude:
+  - "{{ __postgresql_conf_standby }}"
+  - "{{ __postgresql_conf_local }}"
+
 __postgresql_package_name:
   debian:
     - "postgresql-{{ postgresql_release }}"
@@ -28,9 +38,6 @@ __postgresql_service_name:
 __postgresql_bindir:
   redhat: "/usr/pgsql-{{ postgresql_release }}/bin"
   debian: "/usr/lib/postgresql/{{ postgresql_release }}/bin"
-__postgresql_configfile:
-  redhat: "{{ postgresql_datadir }}/postgresql.conf"
-  debian: "/etc/postgresql/{{ postgresql_release }}/main/postgresql.conf"
 
 __postgresql_os_search:
   - "{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}"

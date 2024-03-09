@@ -56,9 +56,21 @@
     group: "{{ postgresql_group }}"
     mode: 0755
 
+- name: List PostgreSQL include config files
+  ansible.builtin.find:
+    path: "{{ _postgresql_includedir }}"
+    recurse: false
+    excludes: "{{ _postgresql_excludefiles | map('basename') }}"
+  register: _query_includes
+
+- debug:
+    var: _query_includes
+
+- fail:
+
 - name: Manage PostgreSQL include config
   ansible.builtin.copy:
-    dest: "{{ _postgresql_includefile }}"
+    dest: "{{ _postgresql_conf_ }}"
     content: "{{ postgresql_conf }}"
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
@@ -74,7 +86,7 @@
 - name: Manage PostgreSQL main config
   ansible.builtin.template:
     src: postgres.conf.j2
-    dest: "{{ _postgresql_configfile }}"
+    dest: "{{ _postgresql_conf_main }}"
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
     mode: 0644
