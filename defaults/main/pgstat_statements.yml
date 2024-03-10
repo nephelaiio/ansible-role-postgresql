@@ -1,7 +1,7 @@
 ---
 postgresql_conf_compute_query_id: 'on'
 postgresql_conf_pgstat_statements_max: 1000
-postgresql_conf_pgstat_statements_track:  'all'
+postgresql_conf_pgstat_statements_track: 'all'
 
 postgresql_conf_pgstat_statements: |
   compute_query_id = '{{ postgresql_conf_compute_query_id }}'

@@ -78,12 +78,18 @@
     path: "{{ _postgresql_conf_local }}"
     state: touch
     modification_time: preserve
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    mode: 0644
 
 - name: Create PostgreSQL standby config
   ansible.builtin.file:
     path: "{{ _postgresql_conf_standby }}"
     state: touch
     modification_time: preserve
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    mode: 0644
 
 - name: Manage PostgreSQL hba config
   community.postgresql.postgresql_pg_hba:
