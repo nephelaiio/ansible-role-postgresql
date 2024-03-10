@@ -16,3 +16,6 @@
 
 - name: Manage PostgreSQL databases
   ansible.builtin.include_tasks: databases.yml
+
+- name: Manage PostgreSQL extensions
+  ansible.builtin.include_tasks: extensions.yml

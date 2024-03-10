@@ -1,0 +1,6 @@
+---
+- name: Manage pgaudit extension
+  ansible.builtin.include_tasks: pgaudit.yml
+
+- name: Manage pgcron extension
+  ansible.builtin.include_tasks: pgcron.yml
