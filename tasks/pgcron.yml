@@ -18,14 +18,14 @@
 
 - name: Query pgcron extension
   community.postgresql.postgresql_query:
-    query: "SELECT * FROM pg_extension WHERE extname = 'pgcron'"
+    query: "SELECT * FROM pg_extension WHERE extname = 'pg_cron'"
     db: postgres
   become: true
   become_user: "{{ postgresql_user }}"
   register: _extension_query
   changed_when: false
 
-- name: Query pgcron extension
+- name: Deploy pgcron extension
   community.postgresql.postgresql_query:
     query: "CREATE EXTENSION pg_cron"
     db: postgres

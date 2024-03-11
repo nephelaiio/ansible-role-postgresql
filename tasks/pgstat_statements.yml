@@ -18,16 +18,16 @@
 
 - name: Query pgstat_statements extension
   community.postgresql.postgresql_query:
-    query: "SELECT * FROM pg_extension WHERE extname = 'pgstat_statements'"
+    query: "SELECT * FROM pg_extension WHERE extname = 'pg_stat_statements'"
     db: postgres
   become: true
   become_user: "{{ postgresql_user }}"
   register: _extension_query
   changed_when: false
 
-- name: Query pgstat_statements extension
+- name: Deploy pgstat_statements extension
   community.postgresql.postgresql_query:
-    query: "CREATE EXTENSION pgstat_statements"
+    query: "CREATE EXTENSION pg_stat_statements"
     db: postgres
   become: true
   become_user: "{{ postgresql_user }}"

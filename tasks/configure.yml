@@ -154,6 +154,3 @@
         group: root
         mode: 0644
       notify: daemon_reload
-
-- name: Flush handlers
-  ansible.builtin.meta: flush_handlers

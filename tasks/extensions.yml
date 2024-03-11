@@ -4,3 +4,6 @@
 
 - name: Manage pgcron extension
   ansible.builtin.include_tasks: pgcron.yml
+
+- name: Manage pgstat_statements extension
+  ansible.builtin.include_tasks: pgstat_statements.yml
