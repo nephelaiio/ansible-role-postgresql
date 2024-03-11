@@ -13,8 +13,9 @@ __postgresql_package_name:
     - "postgresql-{{ postgresql_release }}-cron"
   redhat:
     - "postgresql{{ postgresql_release }}-server"
+    - "postgresql{{ postgresql_release }}-contrib"
     - "postgresql{{ postgresql_release }}"
-    - "pg_audit_{{ postgresql_release }}"
+    - "pgaudit_{{ postgresql_release }}"
     - "pg_cron_{{ postgresql_release }}"
     - "glibc-langpack-{{ postgresql_locale | regex_replace('_.*', '') }}"
 
