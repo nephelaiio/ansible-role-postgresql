@@ -31,7 +31,7 @@
       ansible.builtin.command:
         cmd: localectl set-locale LANG={{ postgresql_locale }}
       when: postgresql_locale != _locale_config
-      changed_when: postgresql_locale != _locale_config
+      changed_when: false
 
 - name: Create PostgreSQL data directory
   ansible.builtin.file:
