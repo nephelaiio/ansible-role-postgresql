@@ -5,6 +5,7 @@ postgresql_service_state: started
 postgresql_service_enabled: true
 postgresql_user: postgres
 postgresql_group: postgres
+postgresql_waldir: "/var/lib/postgresql/wal"
 postgresql_datadir: "/var/lib/postgresql/data"
 postgresql_roles: []
 postgresql_databases: []

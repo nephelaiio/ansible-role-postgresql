@@ -1,4 +1,15 @@
+{% if postgresql_conf_manage %}
 include_dir = '{{ _postgresql_conf_include | basename }}'
+
+wal_level = {{ postgresql_conf_wal_level }}
+wal_keep_size = '{{ postgresql_conf_wal_keep_size }}'
+wal_sender_timeout = '{{ postgresql_conf_wal_sender_timeout }}'
+max_wal_senders = {{ postgresql_conf_max_wal_senders }}
+max_replication_slots = {{ postgresql_conf_max_replication_slots }}
+
+archive_mode = '{{ postgresql_conf_archive_mode }}'
+archive_command = '{{ postgresql_conf_archive_command }}'
+{% endif %}
 
 data_directory = '{{ _postgresql_datadir }}'
 hba_file = '{{ _postgresql_conf_hba }}'
