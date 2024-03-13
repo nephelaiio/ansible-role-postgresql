@@ -2,7 +2,7 @@
 postgresql_conf_basename: "postgresql.conf"
 
 __postgresql_conf_main:
-  redhat: "{{ postgresql_datadir }}/{{ postgresql_conf_basename  }}"
+  redhat: "{{ postgresql_datadir }}/{{ postgresql_conf_basename }}"
   debian: "/etc/postgresql/{{ postgresql_release }}/main/{{ postgresql_conf_basename }}"
 __postgresql_conf_pgaudit: 10-pgaudit.conf
 __postgresql_conf_pgcron: 20-pgcron.conf
