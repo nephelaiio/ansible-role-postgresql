@@ -1,15 +1,5 @@
 ---
-postgresql_conf_manage: false
-postgresql_conf_clean: true
 postgresql_conf_basename: "postgresql.conf"
-postgresql_conf_wal_level: 'logical'
-postgresql_conf_wal_keep_size: 32
-postgresql_conf_wal_sender_timeout: 60000
-postgresql_conf_max_wal_senders: 10
-postgresql_conf_max_replication_slots: "{{ postgresql_conf_max_wal_senders | int + 10 }}"
-
-postgresql_conf_archive_mode: 'always'
-postgresql_conf_archive_command: 'cp %p {{ _postgresql_waldir }}/%f'
 
 __postgresql_conf_main:
   redhat: "{{ postgresql_datadir }}/{{ postgresql_conf_basename  }}"

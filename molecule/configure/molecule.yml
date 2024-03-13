@@ -33,7 +33,6 @@ provisioner:
       all:
         vars:
           postgresql_nolog: false
-          postgresql_conf_manage: true
 verifier:
   name: ansible
 scenario:
