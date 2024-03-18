@@ -9,28 +9,29 @@ postgresql_service_masked: false
 postgresql_user: postgres
 postgresql_group: postgres
 postgresql_roles: []
+postgresql_initdb: true
 postgresql_databases: []
 postgresql_auth_method: md5  # [ scram-sha-256 | md5 ]
 postgresql_default_database: postgres
 postgresql_locale: en_US.UTF-8
 postgresql_hba_entries:
-  - type: "local"
-    databases: "all"
-    users: "all"
+  - type: "host"
+    database: "all"
+    user: "all"
     address: "127.0.0.1/32"
-    method: "{{ _postgresql_auth_method }}"
-  - type: "local"
-    databases: "all"
-    users: "all"
+    auth_method: "{{ _postgresql_auth_method }}"
+  - type: "host"
+    database: "all"
+    user: "all"
     address: "::1/128"
-    method: "{{ _postgresql_auth_method }}"
+    auth_method: "{{ _postgresql_auth_method }}"
   - type: "host"
-    databases: "all"
-    users: "all"
+    database: "all"
+    user: "all"
     address: "0.0.0.0/0"
-    method: "{{ _postgresql_auth_method }}"
+    auth_method: "{{ _postgresql_auth_method }}"
   - type: "host"
-    databases: "all"
-    users: "all"
+    database: "all"
+    user: "all"
     address: "::0/0"
-    method: "{{ _postgresql_auth_method }}"
+    auth_method: "{{ _postgresql_auth_method }}"

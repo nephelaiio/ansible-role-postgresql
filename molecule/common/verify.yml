@@ -151,4 +151,6 @@
 
     - name: Check unauthenticated access
       ansible.builtin.assert:
-        that: postgresql_query_nopasswd is failed
+        that:
+          - postgresql_query_nopasswd is failed
+          - postgresql_query_nopasswd.stderr is search('no password supplied')
