@@ -25,3 +25,6 @@ __postgresql_bindir:
 __postgresql_datadir:
   redhat: "/var/lib/pgsql/{{ postgresql_release }}/main/data"
   debian: "/var/lib/postgresql/{{ postgresql_release }}/main"
+__postgresql_socketdir:
+  redhat: "/run/postgresql"
+  debian: "/var/run/postgresql"
