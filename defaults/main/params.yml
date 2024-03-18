@@ -11,6 +11,7 @@ postgresql_group: postgres
 postgresql_roles: []
 postgresql_initdb: true
 postgresql_databases: []
+postgresql_profile: '/etc/profile.d/postgresql.sh'
 postgresql_auth_method: md5  # [ scram-sha-256 | md5 ]
 postgresql_default_database: postgres
 postgresql_locale: en_US.UTF-8
