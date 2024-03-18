@@ -55,6 +55,7 @@
     creates: "{{ _postgresql_datadir }}/PG_VERSION"
   become: true
   become_user: "{{ postgresql_user }}"
+  when: postgresql_initdb | bool
 
 - name: Create PostgreSQL include directory
   ansible.builtin.file:

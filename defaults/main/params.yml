@@ -8,6 +8,7 @@ postgresql_service_enabled: true
 postgresql_service_masked: false
 postgresql_user: postgres
 postgresql_group: postgres
+postgresql_initdb: true
 postgresql_waldir: "/var/lib/postgresql/wal"
 postgresql_datadir: "/var/lib/postgresql/data"
 postgresql_roles: []
