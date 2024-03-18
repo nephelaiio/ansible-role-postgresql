@@ -1,6 +1,6 @@
 ---
 - name: Reload PostgreSQL
-  ansible.builtin.command:
+  ansible.builtin.service:
     name: "{{ _postgresql_service_name }}"
     state: "reloaded"
   when: postgresql_service_state == 'started'
