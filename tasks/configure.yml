@@ -51,9 +51,9 @@
 - name: Create PostgreSQL database
   block:
     - name: Initialize PostgreSQL password file
-      ansible.builtin.copy:
-        dest: "{{ _postgresql_passfile.path }}"
-        content: "{{ postgresql_admin_password }}"
+      ansible.builtin.lineinfile:
+        path: "{{ _postgresql_passfile.path }}"
+        line: "{{ postgresql_admin_password }}"
       when: postgresql_admin_password is defined
       register: _postgresql_passfile
 
@@ -64,7 +64,7 @@
       vars:
         _username: "-U {{ postgresql_admin_username }}"
         _password: "--pwfile {{ postgresql_admin_password }}"
-        _passfile: "{{ '' if  postgresql_admin_password is not defined else _password }}"
+        _passfile: "{{ '' if postgresql_admin_password is not defined else _password }}"
       become: true
       become_user: "{{ postgresql_user }}"
   always:
