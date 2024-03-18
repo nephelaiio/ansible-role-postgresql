@@ -1,0 +1,6 @@
+{{ ansible_managed | comment }}
+
+local                all                  all                                       peer
+{% for e in postgresql_hba_entries %}
+{{ '{:20}'.format(e.type) }} {{ '{:20}'.format(e.database)'' }} {{ '{:20}'.format(e.user)'' }} {{ '{:20}'.format(e.address|default('')) }} {{ '{:20}'.format(e.auth_method) }}  {{ client.auth_options|default("") }}
+{% endfor %}

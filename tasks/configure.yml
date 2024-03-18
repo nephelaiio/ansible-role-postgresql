@@ -95,35 +95,26 @@
     path: "{{ item }}"
   loop: "{{ _query_includes.files | map(attribute='path') }}"
 
-- name: Manage PostgreSQL hba config
-  community.postgresql.postgresql_pg_hba:
-    dest: "{{ _postgresql_conf_hba }}"
-    contype: "{{ item.type }}"
-    databases: "{{ item.databases }}"
-    users: "{{ item.users }}"
-    source: "{{ item.address | default(omit) }}"
-    method: "{{ item.method }}"
-    create: "{{ postgresql_hba_manage | default(true) }}"
+- name: Manage PostgreSQL main config
+  ansible.builtin.template:
+    src: postgresql.conf.j2
+    dest: "{{ _postgresql_conf_main }}"
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
-  loop: "{{ postgresql_hba_entries }}"
-  loop_control:
-    label: "{{ item.type }} {{ item.databases }} {{ item.users }} {{ item.method }}"
-  notify: postgresql_reload
-
-- name: Manage PostgreSQL include config
-  ansible.builtin.lineinfile:
-    dest: "{{ _postgresql_conf_main }}"
-    line: "include_dir = '{{ _postgresql_conf_include | basename }}'"
-    insertbefore: BOF
+    backup: true
+    mode: 0644
   notify: postgresql_restart
 
-- name: Manage PostgreSQL listen address config
-  ansible.builtin.lineinfile:
-    dest: "{{ _postgresql_conf_main }}"
-    regexp: "#?listen_addresses = 'localhost'"
-    line: "listen_addresses = '*'"
-    insertbefore: BOF
+- name: Manage PostgreSQL hba config
+  ansible.builtin.template:
+    src: pg_hba.conf.j2
+    dest: "{{ _postgresql_conf_hba }}"
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    backup: true
+    mode: 0644
+  vars:
+    _entries: "{{ postgresql_hba_entries }}"
   notify: postgresql_restart
 
 - name: Manage PostgreSQL service configuration
