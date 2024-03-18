@@ -22,3 +22,6 @@ __postgresql_package_name:
 __postgresql_bindir:
   redhat: "/usr/pgsql-{{ postgresql_release }}/bin"
   debian: "/usr/lib/postgresql/{{ postgresql_release }}/bin"
+__postgresql_datadir:
+  redhat: "/var/lib/pgsql/{{ postgresql_release }}/main/data"
+  debian: "/var/lib/postgresql/{{ postgresql_release }}/main"

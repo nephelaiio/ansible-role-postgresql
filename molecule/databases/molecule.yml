@@ -33,7 +33,6 @@ provisioner:
       all:
         vars:
           postgresql_nolog: false
-          postgresql_admin_password: molecule
           postgresql_roles:
             - name: admin
               password: admin

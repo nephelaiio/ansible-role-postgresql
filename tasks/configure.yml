@@ -41,37 +41,12 @@
     state: directory
     mode: 0700
 
-- name: Create PostgreSQL password tempfile
-  ansible.builtin.tempfile:
-    state: file
-    suffix: passfile
-  when: postgresql_admin_password is defined
-  register: _postgresql_passfile
-
-- name: Create PostgreSQL database
-  block:
-    - name: Initialize PostgreSQL password file
-      ansible.builtin.lineinfile:
-        path: "{{ _postgresql_passfile.path }}"
-        line: "{{ postgresql_admin_password }}"
-      when: postgresql_admin_password is defined
-      register: _postgresql_passfile
-
-    - name: Run initdb
-      ansible.builtin.command:
-        cmd: "{{ _postgresql_bindir }}/initdb -D --data-checksums {{ _postgresql_datadir }} {{ _username }} {{ _passfile }}"
-        creates: "{{ _postgresql_datadir }}/PG_VERSION"
-      vars:
-        _username: "-U {{ postgresql_admin_username }}"
-        _password: "--pwfile {{ postgresql_admin_password }}"
-        _passfile: "{{ '' if postgresql_admin_password is not defined else _password }}"
-      become: true
-      become_user: "{{ postgresql_user }}"
-  always:
-    - name: Destroy PostgreSQL password tempfile
-      ansible.builtin.file:
-        path: "{{ _postgresql_passfile.path }}"
-        state: absent
+- name: Initialize PostgreSQL database
+  ansible.builtin.command:
+    cmd: "{{ _postgresql_bindir }}/initdb --data-checksums -D {{ _postgresql_datadir }}"
+    creates: "{{ _postgresql_datadir }}/PG_VERSION"
+  become: true
+  become_user: "{{ postgresql_user }}"
 
 - name: Create PostgreSQL include directory
   ansible.builtin.file:
@@ -108,16 +83,6 @@
     mode: 0644
   changed_when: false
 
-- name: Create PostgreSQL standby config
-  ansible.builtin.file:
-    path: "{{ _postgresql_conf_standby }}"
-    state: touch
-    modification_time: preserve
-    owner: "{{ postgresql_user }}"
-    group: "{{ postgresql_group }}"
-    mode: 0644
-  changed_when: false
-
 - name: List PostgreSQL alien config files
   ansible.builtin.find:
     path: "{{ _postgresql_conf_include }}"
@@ -146,14 +111,19 @@
     label: "{{ item.type }} {{ item.databases }} {{ item.users }} {{ item.method }}"
   notify: postgresql_reload
 
-- name: Manage PostgreSQL main config
-  ansible.builtin.template:
-    src: postgres.conf.j2
+- name: Manage PostgreSQL include config
+  ansible.builtin.lineinfile:
     dest: "{{ _postgresql_conf_main }}"
-    owner: "{{ postgresql_user }}"
-    group: "{{ postgresql_group }}"
-    backup: true
-    mode: 0644
+    line: "include_dir = '{{ _postgresql_conf_include | basename }}'"
+    insertbefore: BOF
+  notify: postgresql_restart
+
+- name: Manage PostgreSQL listen address config
+  ansible.builtin.lineinfile:
+    dest: "{{ _postgresql_conf_main }}"
+    regexp: "#?listen_addresses = 'localhost'"
+    line: "listen_addresses = '*'"
+    insertbefore: BOF
   notify: postgresql_restart
 
 - name: Manage PostgreSQL service configuration

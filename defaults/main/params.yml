@@ -8,8 +8,6 @@ postgresql_service_enabled: true
 postgresql_service_masked: false
 postgresql_user: postgres
 postgresql_group: postgres
-postgresql_admin_user: postgres
-postgresql_datadir: "/var/lib/postgresql/data"
 postgresql_roles: []
 postgresql_databases: []
 postgresql_auth_method: md5  # [ scram-sha-256 | md5 ]
