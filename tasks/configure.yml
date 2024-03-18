@@ -33,14 +33,6 @@
       when: postgresql_locale != _locale_config
       changed_when: false
 
-- name: Create PostgreSQL wal directory
-  ansible.builtin.file:
-    path: "{{ _postgresql_waldir }}"
-    owner: "{{ postgresql_user }}"
-    group: "{{ postgresql_group }}"
-    state: directory
-    mode: 0700
-
 - name: Create PostgreSQL data directory
   ansible.builtin.file:
     path: "{{ _postgresql_datadir }}"
@@ -49,13 +41,37 @@
     state: directory
     mode: 0700
 
-- name: Initialize PostgreSQL database
-  ansible.builtin.command:
-    cmd: "{{ _postgresql_bindir }}/initdb -D {{ _postgresql_datadir }}"
-    creates: "{{ _postgresql_datadir }}/PG_VERSION"
-  become: true
-  become_user: "{{ postgresql_user }}"
-  when: postgresql_initdb | bool
+- name: Create PostgreSQL password tempfile
+  ansible.builtin.tempfile:
+    state: file
+    suffix: passfile
+  when: postgresql_admin_password is defined
+  register: _postgresql_passfile
+
+- name: Create PostgreSQL database
+  block:
+    - name: Initialize PostgreSQL password file
+      ansible.builtin.copy:
+        dest: "{{ _postgresql_passfile.path }}"
+        content: "{{ postgresql_admin_password }}"
+      when: postgresql_admin_password is defined
+      register: _postgresql_passfile
+
+    - name: Run initdb
+      ansible.builtin.command:
+        cmd: "{{ _postgresql_bindir }}/initdb -D --data-checksums {{ _postgresql_datadir }} {{ _username }} {{ _passfile }}"
+        creates: "{{ _postgresql_datadir }}/PG_VERSION"
+      vars:
+        _username: "-U {{ postgresql_admin_username }}"
+        _password: "--pwfile {{ postgresql_admin_password }}"
+        _passfile: "{{ '' if  postgresql_admin_password is not defined else _password }}"
+      become: true
+      become_user: "{{ postgresql_user }}"
+  always:
+    - name: Destroy PostgreSQL password tempfile
+      ansible.builtin.file:
+        path: "{{ _postgresql_passfile.path }}"
+        state: absent
 
 - name: Create PostgreSQL include directory
   ansible.builtin.file:

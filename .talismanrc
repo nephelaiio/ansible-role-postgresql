@@ -5,7 +5,11 @@ fileignoreconfig:
     ignore_detectors: [filecontent]
   - filename: templates/postgres.conf.j2
     ignore_detectors: [filecontent]
+  - filename: molecule/databases/molecule.yml
+    ignore_detectors: [filecontent]
   - filename: tasks/vars.yml
+    ignore_detectors: [filecontent]
+  - filename: tasks/configure.yml
     ignore_detectors: [filecontent]
   - filename: tasks/roles.yml
     ignore_detectors: [filecontent]
