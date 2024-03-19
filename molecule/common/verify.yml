@@ -4,6 +4,11 @@
   gather_facts: true
   become: true
   tasks:
+    - name: Import role defaults
+      ansible.builtin.include_role:
+        name: nephelaiio.postgresql
+        tasks_from: vars.yml
+
     - name: Gather service facts
       ansible.builtin.service_facts:
 
@@ -154,3 +159,7 @@
         that:
           - postgresql_query_nopasswd is failed
           - postgresql_query_nopasswd.stderr is search('no password supplied')
+
+    - name: Execute postgresql bin command from path
+      ansible.builtin.command:
+        cmd: "{{ _postgresql_bindir }}/pg_ctl --help"

@@ -5,6 +5,13 @@
     state: "{{ postgresql_pip_state }}"
   when: postgresql_pip_manage
 
+- name: Gather package facts
+  ansible.builtin.package_facts:
+
+- name: Set package initialization flags
+  ansible.builtin.set_fact:
+    _postgresql_checksum_enable: "{{ _postgresql_package_server not in ansible_facts.packages }}"
+
 - name: Release package holds
   ansible.builtin.include_tasks: lock.yml
   vars:
@@ -14,8 +21,10 @@
   block:
     - name: Install postgresql packages
       ansible.builtin.package:
-        name: "{{ _postgresql_package_name }}"
+        name: "{{ _packages }}"
         state: "{{ postgresql_package_state }}"
+      vars:
+        _packages: "{{ ([_postgresql_package_server] | flatten) + ([_postgresql_package_extra] | flatten) }}"
 
   always:
     - name: Configure package holds

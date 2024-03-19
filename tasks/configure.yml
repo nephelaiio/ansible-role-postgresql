@@ -49,6 +49,12 @@
   become_user: "{{ postgresql_user }}"
   when: _postgresql_initdb | bool
 
+- name: Enable PostgreSQL checksums
+  ansible.builtin.command:
+    cmd: "{{ _postgresql_bindir }}/pg_checksums -D {{ _postgresql_datadir }} --enable"
+  when: _postgresql_checksum_enable | bool
+  changed_when: false
+
 - name: Create PostgreSQL include directory
   ansible.builtin.file:
     path: "{{ _postgresql_conf_include }}"
