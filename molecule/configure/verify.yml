@@ -30,6 +30,7 @@
 
     - name: Check PostgreSQL settings
       ansible.builtin.assert:
-        that: _max_connections.setting == 500
+        that: _max_connections.setting == postgresql_conf_max_connections
       vars:
-        _max_connections: "{{ _postgresql_settings.query_result | selectattr('name', 'equalto', 'max_connections') | first }}"
+        _settings: "{{ _postgresql_settings.query_result  }}"
+        _max_connections: "{{ _settings | selectattr('name', 'equalto', 'max_connections') | first }}"
