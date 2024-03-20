@@ -36,4 +36,4 @@
       vars:
         _settings: "{{ _postgresql_settings.query_result  }}"
         _max_connections_setting: "{{ _settings | selectattr('name', 'equalto', 'max_connections') | first }}"
-        _max_connections: "{{ _max_connections_settings.setting }}"
+        _max_connections: "{{ _max_connections_setting.setting }}"
