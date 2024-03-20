@@ -32,9 +32,9 @@ provisioner:
       all:
         vars:
           postgresql_nolog: false
-          postgresql_conf_max_connections: 600
+          postgresql_conf_max_conns: 600
           postgresql_conf_ansible: |
-            max_connections = {{ postgresql_conf_max_connections }}
+            max_connections = {{ postgresql_conf_max_conns }}
 verifier:
   name: ansible
 scenario:
