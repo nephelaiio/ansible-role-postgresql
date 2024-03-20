@@ -30,7 +30,7 @@
 
     - name: Check PostgreSQL settings
       ansible.builtin.assert:
-        that: _max_connections == postgresql_conf_max_conns
+        that: (_max_connections | int) == (postgresql_conf_max_conns | int)
         fail_msg: "Expected max_connections = {{ postgresql_conf_max_conns }}, found {{ _max_connections }}"
         success_msg: "max_connections = {{ _max_connections }}"
       vars:
