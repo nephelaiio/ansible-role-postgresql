@@ -19,8 +19,8 @@ jobs:
       matrix:
         scenario:
           - deploy
-          - stopped
-          - masked
+          - stop
+          - mask
           - databases
           - configure
           - initdb

@@ -31,6 +31,9 @@
         dest: "/etc/postgresql-common/createcluster.conf"
         content: |
           create_main_cluster = off
+        owner: root
+        group: root
+        mode: 0644
       when: not (_postgresql_initdb | bool)
 
 - name: Install packages and configure package holds

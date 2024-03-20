@@ -7,7 +7,7 @@ dependency:
 driver:
   name: docker
 platforms:
-  - name: postgresql-install-01
+  - name: postgresql-mask-01
     image: "geerlingguy/docker-${MOLECULE_DOCKER_IMAGE:-ubuntu2204}-ansible:latest"
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     cgroupns_mode: host
@@ -34,6 +34,7 @@ provisioner:
         vars:
           postgresql_nolog: false
           postgresql_service_state: stopped
+          postgresql_service_masked: true
           postgresql_service_enabled: false
 verifier:
   name: ansible
