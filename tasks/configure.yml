@@ -128,6 +128,7 @@
     owner: "{{ _postgresql_user }}"
     group: "{{ _postgresql_group }}"
     mode: 0644
+  when: _postgresql_conf_main_manage | bool
   notify: postgresql_restart
 
 - name: Manage PostgreSQL hba config
@@ -139,7 +140,7 @@
     mode: 0644
   vars:
     _entries: "{{ postgresql_hba_entries }}"
-  notify: postgresql_restart
+  notify: postgresql_reload
 
 - name: Manage PostgreSQL ident config
   ansible.builtin.template:
