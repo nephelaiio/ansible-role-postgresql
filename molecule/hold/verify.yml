@@ -60,7 +60,7 @@
 
     - name: Set target RedHat package versions
       ansible.builtin.set_fact:
-        postgresql_package_list: "{{ postgresql_package_name + [_package] }}"
+        postgresql_package_list: "{{ postgresql_package_list + [_package] }}"
       vars:
         _stdout: "{{ item.stdout_lines }}"
         _multiple: "{{ _stdout | length > 1 }}"
