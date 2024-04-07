@@ -46,10 +46,10 @@
         _postgresql_package_server_query: "{{ _redhat_server + _debian_server }}"
         _postgresql_package_client_query: "{{ _redhat_client + _debian_client }}"
       vars:
-        _redhat_server: "{{ [] if _redhat_package_server.skipped else _redhat_server_package.results }}"
-        _debian_server: "{{ [] if _debian_package_server.skipped else _debian_server_package.results }}"
-        _redhat_client: "{{ [] if _redhat_package_client.skipped else _redhat_client_package.results }}"
-        _debian_client: "{{ [] if _debian_package_client.skipped else _debian_client_package.results }}"
+        _redhat_server: "{{ [] if _redhat_package_server.skipped else _redhat_package_server.results }}"
+        _debian_server: "{{ [] if _debian_package_server.skipped else _debian_package_server.results }}"
+        _redhat_client: "{{ [] if _redhat_package_client.skipped else _redhat_package_client.results }}"
+        _debian_client: "{{ [] if _debian_package_client.skipped else _debian_package_client.results }}"
 
     - name: Verify target package versions
       ansible.builtin.fail:
