@@ -51,7 +51,7 @@
         _redhat_client: "{{ [] if _redhat_package_client.skipped else _redhat_package_client.results }}"
         _debian_client: "{{ [] if _debian_package_client.skipped else _debian_package_client.results }}"
 
-    - name: Verify target package versions
+    - name: Verify target server package versions
       ansible.builtin.fail:
         msg: "{{ _package }} has no installation candidate: {{ item }}"
       vars:
@@ -59,7 +59,18 @@
         _package: "{{ item.item }}"
       loop_control:
         label: "{{ item.item }}"
-      loop: "{{ _postgresql_package_query }}"
+      loop: "{{ _postgresql_package_server_query }}"
+      when: _stdout | length == 0
+
+    - name: Verify target client package versions
+      ansible.builtin.fail:
+        msg: "{{ _package }} has no installation candidate: {{ item }}"
+      vars:
+        _stdout: "{{ item.stdout_lines }}"
+        _package: "{{ item.item }}"
+      loop_control:
+        label: "{{ item.item }}"
+      loop: "{{ _postgresql_package_client_query }}"
       when: _stdout | length == 0
 
     - name: Initialize package versions
