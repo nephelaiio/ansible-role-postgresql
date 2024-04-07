@@ -74,6 +74,7 @@
     - name: Initialize package versions
       ansible.builtin.set_fact:
         postgresql_package_server_list: []
+        postgresql_package_client_list: []
 
     - name: Set target Debian server package versions
       ansible.builtin.set_fact:
