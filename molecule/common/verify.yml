@@ -68,6 +68,10 @@
         _service: "{{ [_name] | map('extract', services) }}"
       when: ansible_os_family == 'Debian'
 
+    - name: Debug service mask state
+      ansible.builtin.debug:
+        msg: "PostgreSQL service mask param is '{{ postgresql_service_masked | default(False) | string }}'"
+
     - name: Verify service state
       ansible.builtin.assert:
         that:

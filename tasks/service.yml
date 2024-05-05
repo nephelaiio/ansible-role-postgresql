@@ -2,6 +2,11 @@
 - name: Set installation facts
   ansible.builtin.include_tasks: vars.yml
 
+- name: Debug PostgreSQL service mask state
+  ansible.builtin.debug:
+    msg: "PostgreSQL service will be masked"
+  when: postgresql_service_masked
+
 - name: Manage PostgreSQL service
   ansible.builtin.systemd_service:
     name: "{{ _postgresql_service_name }}"
