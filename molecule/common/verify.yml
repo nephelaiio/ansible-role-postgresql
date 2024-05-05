@@ -50,6 +50,7 @@
     - name: Set yum service facts
       ansible.builtin.set_fact:
         postgresql_service_release: "{{ _release }}"
+        postgresql_service_name: "{{ _name }}"
         postgresql_service: "{{ _service }}"
       vars:
         _packages: "{{ postgresql_server_packages }}"
