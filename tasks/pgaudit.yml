@@ -1,0 +1,27 @@
+---
+- name: Destroy PostgreSQL pgaudit config
+  ansible.builtin.file:
+    path: "{{ _postgresql_conf_pgaudit }}"
+    state: absent
+  when: not (postgresql_conf_pgaudit_enable | bool)
+  notify: postgresql_reload
+
+- name: Configure PostgreSQL pgaudit extention
+  when: postgresql_conf_pgaudit_enable | bool
+  block:
+    - name: Manage PostgreSQL pgaudit include config
+      ansible.builtin.copy:
+        dest: "{{ _postgresql_conf_pgaudit }}"
+        content: "{{ postgresql_conf_pgaudit }}"
+        owner: "{{ postgresql_user }}"
+        group: "{{ postgresql_group }}"
+        mode: 0644
+      notify: postgresql_reload
+
+    - name: Enable pgaudit extension
+      community.postgresql.postgresql_query:
+        query: "CREATE EXTENSION IF NOT EXISTS pgaudit"
+        db: postgres
+      become: true
+      become_user: "{{ postgresql_user }}"
+      when: postgresql_service_state != 'stopped'
