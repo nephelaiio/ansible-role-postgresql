@@ -57,4 +57,4 @@ version:
 	@poetry run molecule --version
 
 debug: version
-	@poetry export --dev --without-hashes
+	@poetry export --dev --without-hashes || exit 0
