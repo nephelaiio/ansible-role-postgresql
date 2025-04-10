@@ -48,7 +48,7 @@ jobs:
       - name: Install devbox
         uses: jetify-com/devbox-install-action@v0.12.0
         with:
-          project-path: "nephelaiio.k8s"
+          project-path: "nephelaiio.postgresql"
 
       - name: Install dependencies
         run: devbox run -- make install
