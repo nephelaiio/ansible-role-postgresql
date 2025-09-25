@@ -29,9 +29,9 @@ jobs:
             command: /lib/systemd/systemd
           - name: ubuntu2204
             command: /lib/systemd/systemd
-          - name: debian13
-            command: /lib/systemd/systemd
           - name: debian12
+            command: /lib/systemd/systemd
+          - name: debian11
             command: /lib/systemd/systemd
 
     steps:
