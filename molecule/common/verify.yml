@@ -189,7 +189,7 @@
           ansible.builtin.assert:
             that:
               - postgresql_query_nopasswd is failed
-              - postgresql_query_nopasswd.stderr is search('no password supplied') | length > 0
+              - postgresql_query_nopasswd.stderr is search('no password supplied')
 
     - name: Execute PostgreSQL bin command from path
       ansible.builtin.command:
