@@ -1,5 +1,4 @@
 ---
-# Test CI trigger
 name: molecule
 
 on:
