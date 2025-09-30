@@ -106,6 +106,7 @@
     port: "{{ item.port | default(omit) }}"
     owner: "{{ item.owner | default(_postgresql_user) }}"
     state: "{{ item.state }}"
+    force: "{{ item.force | default('false') | bool }}"
   loop_control:
     label: "{{ item.name }}"
   loop: "{{ _postgresql_databases_absent }}"
