@@ -9,7 +9,8 @@ postgresql_service_masked: false
 postgresql_user: postgres
 postgresql_group: postgres
 postgresql_roles: []
-postgresql_roles_ignore: []
+postgresql_roles_ignore:
+  - postgres
 postgresql_initdb: true
 postgresql_databases: []
 postgresql_profile: "/etc/profile.d/postgresql.sh"
