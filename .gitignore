@@ -3,8 +3,11 @@
 .cache/
 .devbox/
 .venv/
+.devbox/
 __pycache__/
 .ansible/
+roles/
+ansible_collections/
 
 # file globs
 *.swp

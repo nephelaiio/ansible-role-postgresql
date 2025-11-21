@@ -4,3 +4,7 @@ roles:
   - name: robertdebock.update
 collections:
   - name: nephelaiio.plugins
+  - name: community.docker
+  - name: ansible.posix
+  - name: community.general
+  - name: community.postgresql

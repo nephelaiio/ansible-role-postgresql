@@ -1,33 +1,13 @@
 ---
 name: release
-
+permissions:
+  contents: read
 on:
   push:
     tags:
       - "*"
-
-defaults:
-  run:
-    working-directory: "nephelaiio.postgresql"
-
 jobs:
   release:
-    name: release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-        with:
-          path: "nephelaiio.postgresql"
-
-      - name: Install devbox
-        uses: jetify-com/devbox-install-action@v0.14.0
-        with:
-          project-path: "nephelaiio.postgresql"
-          enable-cache: true
-
-      - name: Trigger a new import on galaxy
-        run: devbox run -- make publish
-        env:
-          GALAXY_API_KEY: "${{ secrets.GALAXY_API_KEY }}"
-          GITHUB_REPOSITORY: "${{ github.repository }}"
+    uses: pokerops/ansible-utils/.github/workflows/release.yml@master
+    secrets:
+      GALAXY_API_KEY: ${{ secrets.GALAXY_API_KEY }}
