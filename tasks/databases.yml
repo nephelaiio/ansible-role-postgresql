@@ -55,9 +55,9 @@
     db: "{{ _database.db_connect | default(postgresql_default_database) }}"
     role: "{{ _role.name }}"
     privs: "{{ _role.privs | default(omit) }}"
-    objs: "{{ _database.name }}"
+    objs: "{{ _role.objs | default(_database.name) }}"
     schema: "{{ _role.schema | default(omit) }}"
-    type: database
+    type: "{{ _role.type | default('database') }}"
     grant_option: "{{ _role.grant_option | default(omit) }}"
     session_role: "{{ _database.session_role | default(omit) }}"
     state: "{{ _role.state | default('present') }}"
