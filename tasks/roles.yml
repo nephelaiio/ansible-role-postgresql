@@ -15,6 +15,7 @@
     _postgresql_roles_existing: "{{ _existing_attributes }}"
     _postgresql_roles_absent: "{{ _absent }}"
     _postgresql_roles_present: "{{ _present }}"
+    _drop_attributes: "{{ _drop_attributes }}"
   vars:
     _roles_ignore: "{{ postgresql_roles_ignore }}"
     _attributes:
@@ -35,19 +36,19 @@
 
 - name: Debug existing PostgreSQL roles
   ansible.builtin.debug:
-    msg: "{{ _postgresql_roles_existing }}"
+    msg: "{{ _postgresql_roles_existing | _drop_attributes(['password']) }}"
 
 - name: Debug target PostgreSQL roles
   ansible.builtin.debug:
-    msg: "{{ _postgresql_roles_present }}"
+    msg: "{{ _postgresql_roles_present | _drop_attributes(['password']) }}"
 
 - name: Debug existing PostgreSQL roles to be dropped
   ansible.builtin.debug:
-    msg: "{{ _postgresql_roles_absent }}"
+    msg: "{{ _postgresql_roles_absent | _drop_attributes(['password']) }}"
 
 - name: Debug PostgreSQL roles ignore
   ansible.builtin.debug:
-    msg: "{{ postgresql_roles_ignore }}"
+    msg: "{{ postgresql_roles_ignore | _drop_attributes(['password']) }}"
 
 - name: Verify PostgreSQL roles to be dropped
   ansible.builtin.assert:
