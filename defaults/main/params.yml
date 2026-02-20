@@ -45,3 +45,4 @@ postgresql_hba_entries:
     user: "all"
     address: "::0/0"
     auth_method: "{{ _postgresql_auth_method }}"
+postgresql_nolog: true
