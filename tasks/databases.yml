@@ -52,7 +52,7 @@
 
 - name: Manage PostgreSQL database privileges
   community.postgresql.postgresql_privs:
-    db: "{{ _database.db_connect | default(postgresql_default_database) }}"
+    login_db: "{{ _database.db_connect | default(postgresql_default_database) }}"
     role: "{{ _role.name }}"
     privs: "{{ _role.privs | default(omit) }}"
     objs: "{{ _role.objs | default(_database.name) }}"
@@ -75,7 +75,7 @@
 
 - name: Delete PostgreSQL database privileges
   community.postgresql.postgresql_privs:
-    db: "{{ _database.db_connect | default(postgresql_default_database) }}"
+    login_db: "{{ _database.db_connect | default(postgresql_default_database) }}"
     role: "{{ _role.name }}"
     privs: "{{ _role.privs | default(omit) }}"
     objs: "{{ _database.name }}"

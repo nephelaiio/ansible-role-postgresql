@@ -22,7 +22,7 @@
 
     - name: Query PostgreSQL settings
       community.postgresql.postgresql_query:
-        db: postgres
+        login_db: postgres
         query: 'SELECT name,setting from pg_settings'
       become: true
       become_user: "{{ _postgresql_user }}"

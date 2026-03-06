@@ -79,7 +79,7 @@
 
 - name: Manage PostgreSQL role group memberships
   community.postgresql.postgresql_membership:
-    db: "{{ _role.database | default(postgresql_default_database) }}"
+    login_db: "{{ _role.database | default(postgresql_default_database) }}"
     state: "{{ _group_state | default('present') }}"
     group: "{{ _group_name }}"
     target_role: "{{ _role.name }}"
