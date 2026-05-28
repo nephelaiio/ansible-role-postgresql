@@ -1,9 +1,5 @@
 ---
 name: molecule
-
-env:
-  DEVBOX_VERSION: ${{ vars.DEVBOX_VERSION }}
-
 on:
   pull_request:
     branches:
@@ -11,7 +7,6 @@ on:
     paths:
       - "*"
       - "!README.md"
-
 defaults:
   run:
     working-directory: "nephelaiio.postgresql"
@@ -45,14 +40,15 @@ jobs:
       - name: Run devbox tests
         uses: pokerops/ansible-utils@master
         with:
-          run: |
-            make requirements test \
-              MOLECULE_SCENARIO=${{ matrix.scenario }} \
-              MOLECULE_DOCKER_IMAGE=${{ matrix.image.name }} \
-              MOLECULE_DOCKER_COMMAND=${{ matrix.image.command }}
+          run: >
+            just
+            --set MOLECULE_SCENARIO ${{ matrix.scenario }}
+            --set MOLECULE_DOCKER_IMAGE ${{ matrix.image.name }}
+            --set MOLECULE_DOCKER_COMMAND ${{ matrix.image.command }}
+            requirements test
 
       - name: Upload install logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: install-${{ matrix.scenario }}-${{ matrix.image.name }}.log
           path: |
