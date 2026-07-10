@@ -59,11 +59,30 @@
       become: true
       become_user: "{{ _postgresql_user }}"
 
-    - name: Enable PostgreSQL checksums
-      ansible.builtin.command:
-        cmd: "{{ _postgresql_bindir }}/pg_checksums -D {{ _postgresql_datadir }} --enable"
+    - name: Manage PostgreSQL checksums
       when: _postgresql_checksum_enable | bool
-      changed_when: false
+      block:
+        - name: Gather service facts
+          ansible.builtin.service_facts:
+
+        - name: Stop PostgreSQL service
+          ansible.builtin.service:
+            state: stopped
+          vars:
+            _service: "postgresql.service"
+          when: _service in services
+
+        - name: Enable PostgreSQL checksums
+          ansible.builtin.command:
+            cmd: "{{ _postgresql_bindir }}/pg_checksums -D {{ _postgresql_datadir }} --enable"
+          changed_when: false
+
+        - name: Start PostgreSQL service
+          ansible.builtin.service:
+            state: started
+          vars:
+            _service: "postgresql.service"
+          when: _service in services
 
     - name: Cleanup stale initdb files
       ansible.builtin.file:
