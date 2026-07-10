@@ -1,4 +1,3 @@
-# Test CI trigger
 ---
 - name: Manage Debian locale
   community.general.locale_gen:
