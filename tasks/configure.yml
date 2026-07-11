@@ -67,8 +67,10 @@
 
         - name: Stop PostgreSQL service
           ansible.builtin.service:
-            name: "postgresql.service"
+            name: "{{ _service }}"
             state: stopped
+          vars:
+            _service: "postgresql.service"
           when: _service in services
 
         - name: Enable PostgreSQL checksums
@@ -78,8 +80,10 @@
 
         - name: Start PostgreSQL service
           ansible.builtin.service:
-            name: "postgresql.service"
+            name: "{{ _service }}"
             state: started
+          vars:
+            _service: "postgresql.service"
           when: _service in services
 
     - name: Cleanup stale initdb files
