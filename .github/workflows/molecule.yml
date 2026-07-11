@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
       - master
-    paths:
-      - "*"
-      - "!README.md"
 defaults:
   run:
     working-directory: "nephelaiio.postgresql"
