@@ -19,13 +19,13 @@
       ansible.builtin.set_fact:
         postgresql_server_packages: "{{ packages.keys() | select('match', '^postgresql[0-9]+-server$') }}"
         postgresql_client_packages: "{{ packages.keys() | select('match', '^postgresql[0-9]+$') }}"
-      when: ansible_os_family == 'RedHat'
+      when: ansible_facts.os_family == 'RedHat'
 
     - name: Set apt package facts
       ansible.builtin.set_fact:
         postgresql_server_packages: "{{ packages.keys() | select('match', '^postgresql-[0-9]+$') }}"
         postgresql_client_packages: "{{ packages.keys() | select('match', '^postgresql-client-[0-9]+$') }}"
-      when: ansible_os_family == 'Debian'
+      when: ansible_facts.os_family == 'Debian'
 
     - name: Verify packages
       block:
@@ -66,7 +66,7 @@
         _release: "{{ _packages | first | regex_replace('^postgresql([0-9]+)-server', '\\1') }}"
         _name: "postgresql-{{ _release }}.service"
         _service: "{{ [_name] | map('extract', services) }}"
-      when: ansible_os_family == 'RedHat'
+      when: ansible_facts.os_family == 'RedHat'
 
     - name: Set yum service facts
       ansible.builtin.set_fact:
@@ -77,7 +77,7 @@
         _release: "{{ postgresql_server_packages | first | regex_replace('^postgresql-', '') }}"
         _name: "postgresql@{{ _release }}-main.service"
         _service: "{{ [_name] | map('extract', services) }}"
-      when: ansible_os_family == 'Debian'
+      when: ansible_facts.os_family == 'Debian'
 
     - name: Verify service state
       ansible.builtin.assert:
@@ -87,20 +87,21 @@
           - (postgresql_service | first).status == _svc_status
       vars:
         _state: "{{ postgresql_service_state | default('running') }}"
-        _online: "{{ (ansible_os_family == 'RedHat') | ternary('enabled', 'active') }}"
-        _offline: "{{ (ansible_os_family == 'RedHat') | ternary('disabled', 'inactive')  }}"
+        _online: "{{ (ansible_facts.os_family == 'RedHat') | ternary('enabled', 'active') }}"
+        _offline: "{{ (ansible_facts.os_family == 'RedHat') | ternary('disabled', 'inactive') }}"
         _status: "{{ (_state == 'running') | ternary(_online, _offline) }}"
         _masked: "{{ postgresql_service_masked | default('false') | bool }}"
         _svc_status: "{{ _masked | ternary('masked', _status) }}"
-        _stopped: "{{ (ansible_os_family == 'RedHat') | ternary('inactive', 'stopped') }}"
+        _stopped: "{{ (ansible_facts.os_family == 'RedHat') | ternary('inactive', 'stopped') }}"
         _svc_state: "{{ (_state == 'running') | ternary('running', _stopped) }}"
 
     - name: Verify service mask
       when: postgresql_service_masked | default('false') | bool
       block:
         - name: Attempt mask service start
-          ansible.builtin.shell: >-
-            systemctl start {{ postgresql_service_name }}
+          ansible.builtin.systemd_service:
+            name: "{{ postgresql_service_name }}"
+            state: started
           register: _masked_start
 
       rescue:
@@ -183,6 +184,7 @@
           become: true
           become_user: molecule
           register: postgresql_query_nopasswd
+          changed_when: false
 
       rescue:
         - name: Check unauthenticated access
@@ -194,6 +196,7 @@
     - name: Execute PostgreSQL bin command from path
       ansible.builtin.command:
         cmd: "{{ _postgresql_bindir }}/pg_ctl --help"
+      changed_when: false
 
     - name: Verify configuration dir variable is defined and exists
       ansible.builtin.stat:

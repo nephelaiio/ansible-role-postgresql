@@ -3,11 +3,11 @@
   community.general.locale_gen:
     name: "{{ postgresql_locale }}"
     state: present
-  when: ansible_os_family == 'Debian'
+  when: ansible_facts.os_family == 'Debian'
   notify: postgresql_restart
 
 - name: Manage RedHat locale
-  when: ansible_os_family == 'RedHat'
+  when: ansible_facts.os_family == 'RedHat'
   block:
     - name: Query available locale
       ansible.builtin.command: localectl list-locales
@@ -39,7 +39,7 @@
     owner: "{{ _postgresql_user }}"
     group: "{{ _postgresql_group }}"
     state: directory
-    mode: 0700
+    mode: "0700"
 
 - name: Create PostgreSQL data directory
   ansible.builtin.file:
@@ -47,7 +47,7 @@
     owner: "{{ _postgresql_user }}"
     group: "{{ _postgresql_group }}"
     state: directory
-    mode: 0700
+    mode: "0700"
 
 - name: Manage PostgreSQL initialization
   when: _postgresql_initdb | bool
@@ -70,8 +70,9 @@
             name: "{{ _service }}"
             state: stopped
           vars:
+            _services: "{{ ansible_facts.services }}"
             _service: "postgresql.service"
-          when: _service in services
+          when: _service in _services
 
         - name: Enable PostgreSQL checksums
           ansible.builtin.command:
@@ -83,8 +84,9 @@
             name: "{{ _service }}"
             state: started
           vars:
+            _services: "{{ ansible_facts.services }}"
             _service: "postgresql.service"
-          when: _service in services
+          when: _service in _services
 
     - name: Cleanup stale initdb files
       ansible.builtin.file:
@@ -101,7 +103,7 @@
     state: directory
     owner: "{{ _postgresql_user }}"
     group: "{{ _postgresql_group }}"
-    mode: 0755
+    mode: "0755"
 
 - name: Manage PostgreSQL configuration
   when: _postgresql_conf_main_manage | bool
@@ -112,7 +114,7 @@
         content: "{{ postgresql_conf_ansible }}"
         owner: "{{ _postgresql_user }}"
         group: "{{ _postgresql_group }}"
-        mode: 0644
+        mode: "0644"
       when: postgresql_conf_ansible is defined
       notify: postgresql_reload
 
@@ -130,7 +132,7 @@
         modification_time: preserve
         owner: "{{ _postgresql_user }}"
         group: "{{ _postgresql_group }}"
-        mode: 0644
+        mode: "0644"
       changed_when: false
 
     - name: List PostgreSQL alien config files
@@ -151,7 +153,7 @@
         dest: "{{ _postgresql_conf_main }}"
         owner: "{{ _postgresql_user }}"
         group: "{{ _postgresql_group }}"
-        mode: 0644
+        mode: "0644"
       notify: postgresql_restart
 
 - name: Manage PostgreSQL hba entries
@@ -160,7 +162,7 @@
     dest: "{{ _postgresql_conf_hba }}"
     owner: "{{ _postgresql_user }}"
     group: "{{ _postgresql_group }}"
-    mode: 0644
+    mode: "0644"
   vars:
     _entries: "{{ postgresql_hba_entries }}"
   when: _postgresql_conf_hba_manage | bool
@@ -172,7 +174,7 @@
     dest: "{{ _postgresql_conf_ident }}"
     owner: "{{ _postgresql_user }}"
     group: "{{ _postgresql_group }}"
-    mode: 0644
+    mode: "0644"
   vars:
     _entries: "{{ postgresql_ident_entries }}"
   when: _postgresql_conf_ident_manage | bool
@@ -186,4 +188,4 @@
     create: true
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"

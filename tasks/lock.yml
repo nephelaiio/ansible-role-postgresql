@@ -14,7 +14,7 @@
     _package_target: "{{ item.split('=') | first }}"
   loop: "{{ _package_holds }}"
   when:
-    - ansible_os_family == "Debian"
+    - ansible_facts.os_family == "Debian"
     - _lock_state != 'install' or _package_target in ansible_facts.packages
   changed_when: false
 
@@ -30,6 +30,6 @@
     _package_target: "{{ item.split('=') | first }}"
   loop: "{{ _package_holds }}"
   when:
-    - ansible_os_family == "RedHat"
+    - ansible_facts.os_family == "RedHat"
     - _lock_state != 'install' or _package_target in ansible_facts.packages
   changed_when: false

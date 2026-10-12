@@ -15,32 +15,36 @@
         cmd: "apt-cache madison {{ item }} | awk -F'|' '{ print $2 }'"
       loop: "{{ _postgresql_package_server }}"
       register: _debian_package_server
-      when: ansible_os_family == "Debian"
+      when: ansible_facts.os_family == "Debian"
       changed_when: false
+      tags: skip_ansible_lint
 
     - name: Query Debian client package versions
       ansible.builtin.shell:
         cmd: "apt-cache madison {{ item }} | awk -F'|' '{ print $2 }'"
       loop: "{{ _postgresql_package_client }}"
       register: _debian_package_client
-      when: ansible_os_family == "Debian"
+      when: ansible_facts.os_family == "Debian"
       changed_when: false
+      tags: skip_ansible_lint
 
     - name: Query RedHat server package versions
       ansible.builtin.shell:
         cmd: "yum list {{ item }} --showduplicates | grep '^{{ item }}' | awk '{ print $1,$2 }' | sort -r"
       loop: "{{ _postgresql_package_server }}"
       register: _redhat_package_server
-      when: ansible_os_family == "RedHat"
+      when: ansible_facts.os_family == "RedHat"
       changed_when: false
+      tags: skip_ansible_lint
 
     - name: Query RedHat client package versions
       ansible.builtin.shell:
         cmd: "yum list {{ item }} --showduplicates | grep '^{{ item }}' | awk '{ print $1,$2 }' | sort -r"
       loop: "{{ _postgresql_package_client }}"
       register: _redhat_package_client
-      when: ansible_os_family == "RedHat"
+      when: ansible_facts.os_family == "RedHat"
       changed_when: false
+      tags: skip_ansible_lint
 
     - name: Set package version facts
       ansible.builtin.set_fact:
@@ -90,7 +94,7 @@
       loop_control:
         label: "{{ item.item }}"
       loop: "{{ _postgresql_package_server_query }}"
-      when: ansible_os_family == "Debian"
+      when: ansible_facts.os_family == "Debian"
 
     - name: Set target RedHat server package versions
       ansible.builtin.set_fact:
@@ -106,7 +110,7 @@
       loop_control:
         label: "{{ item.item }}"
       loop: "{{ _postgresql_package_server_query }}"
-      when: ansible_os_family == "RedHat"
+      when: ansible_facts.os_family == "RedHat"
 
     - name: Set target Debian client package versions
       ansible.builtin.set_fact:
@@ -119,7 +123,7 @@
       loop_control:
         label: "{{ item.item }}"
       loop: "{{ _postgresql_package_client_query }}"
-      when: ansible_os_family == "Debian"
+      when: ansible_facts.os_family == "Debian"
 
     - name: Set target RedHat client package versions
       ansible.builtin.set_fact:
@@ -135,4 +139,4 @@
       loop_control:
         label: "{{ item.item }}"
       loop: "{{ _postgresql_package_client_query }}"
-      when: ansible_os_family == "RedHat"
+      when: ansible_facts.os_family == "RedHat"

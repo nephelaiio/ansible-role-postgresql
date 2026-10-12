@@ -1,5 +1,6 @@
 ---
-- ansible.builtin.import_playbook: ../common/verify.yml
+- name: Import verify play
+  ansible.builtin.import_playbook: ../common/verify.yml
 
 - name: Verify datadir
   hosts: all
