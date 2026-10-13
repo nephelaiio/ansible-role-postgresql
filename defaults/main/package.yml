@@ -12,6 +12,7 @@ __postgresql_package_extra:
   debian:
     - "pgtop"
     - "pg-activity"
+    - "locales"
 __postgresql_package_server:
   redhat:
     - "postgresql{{ postgresql_release }}-server"
