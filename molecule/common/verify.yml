@@ -180,7 +180,7 @@
       block:
         - name: Attempt remote admin access
           ansible.builtin.command:
-            cmd: "psql -h {{ ansible_default_ipv4.address }} -p 5432 -U postgres -c 'SHOW data_checksums'"
+            cmd: "psql -h {{ ansible_facts.default_ipv4.address }} -p 5432 -U postgres -c 'SHOW data_checksums'"
           become: true
           become_user: molecule
           register: postgresql_query_nopasswd
