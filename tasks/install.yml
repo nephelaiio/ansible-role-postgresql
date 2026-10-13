@@ -49,9 +49,9 @@
         _packages: "{{ _server + _client + _extra }}"
       when: ansible_facts.os_family == 'Debian'
 
-    - name: Install PostgreSQL yum server packages
+    - name: Install PostgreSQL dnf server packages
       ansible.builtin.package:
-        name: "{{ _packages | regex_replace('=', '-') }}"
+        name: "{{ _packages | map('regex_replace', '=', '-') }}"
         state: "{{ postgresql_package_state }}"
       vars:
         _client: "{{ [_postgresql_package_client] | flatten }}"

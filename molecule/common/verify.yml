@@ -15,7 +15,7 @@
     - name: Gather package facts
       ansible.builtin.package_facts:
 
-    - name: Set yum package facts
+    - name: Set dnf package facts
       ansible.builtin.set_fact:
         postgresql_server_packages: "{{ packages.keys() | select('match', '^postgresql[0-9]+-server$') }}"
         postgresql_client_packages: "{{ packages.keys() | select('match', '^postgresql[0-9]+$') }}"
@@ -56,7 +56,7 @@
         - name: Fail verification
           ansible.builtin.fail:
 
-    - name: Set yum service facts
+    - name: Set dnf service facts
       ansible.builtin.set_fact:
         postgresql_service_release: "{{ _release }}"
         postgresql_service_name: "{{ _name }}"
@@ -68,7 +68,7 @@
         _service: "{{ [_name] | map('extract', services) }}"
       when: ansible_facts.os_family == 'RedHat'
 
-    - name: Set yum service facts
+    - name: Set dnf service facts
       ansible.builtin.set_fact:
         postgresql_service_release: "{{ _release }}"
         postgresql_service_name: "{{ _name }}"

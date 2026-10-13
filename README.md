@@ -57,11 +57,10 @@ Please make sure your environment has [docker](https://www.docker.com) installed
 
 Role is tested against the following distributions (docker images):
 
-- Ubuntu Focal
-- Ubuntu Bionic
+- Ubuntu Jammy
+- Ubuntu Noble
 - Debian Bookworm
-- Debian Buster
-- Rocky Linux 9
+- Rocky Linux 10
 
 You can test the role directly from sources using command `molecule test`
 

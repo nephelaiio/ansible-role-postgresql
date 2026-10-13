@@ -30,7 +30,7 @@
 
     - name: Query RedHat server package versions
       ansible.builtin.shell:
-        cmd: "yum list {{ item }} --showduplicates | grep '^{{ item }}' | awk '{ print $1,$2 }' | sort -r"
+        cmd: "dnf list {{ item }} --showduplicates | grep '^{{ item }}' | awk '{ print $1,$2 }' | sort -r"
       loop: "{{ _postgresql_package_server }}"
       register: _redhat_package_server
       when: ansible_facts.os_family == "RedHat"
@@ -39,7 +39,7 @@
 
     - name: Query RedHat client package versions
       ansible.builtin.shell:
-        cmd: "yum list {{ item }} --showduplicates | grep '^{{ item }}' | awk '{ print $1,$2 }' | sort -r"
+        cmd: "dnf list {{ item }} --showduplicates | grep '^{{ item }}' | awk '{ print $1,$2 }' | sort -r"
       loop: "{{ _postgresql_package_client }}"
       register: _redhat_package_client
       when: ansible_facts.os_family == "RedHat"
