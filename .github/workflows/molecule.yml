@@ -29,8 +29,6 @@ jobs:
             command: /lib/systemd/systemd
           - name: debian12
             command: /lib/systemd/systemd
-          - name: debian11
-            command: /lib/systemd/systemd
     env:
       MOLECULE_OUTPUT_DIR: /tmp/logs
     steps:
