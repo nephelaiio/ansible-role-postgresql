@@ -15,15 +15,19 @@
     - name: Gather package facts
       ansible.builtin.package_facts:
 
+    - name: Set packages fact
+      ansible.builtin.set_fact:
+        _packages: "{{ ansible_facts.packages }}"
+
     - name: Set dnf package facts
       ansible.builtin.set_fact:
-        postgresql_server_packages: "{{ packages.keys() | select('match', '^postgresql[0-9]+-server$') }}"
-        postgresql_client_packages: "{{ packages.keys() | select('match', '^postgresql[0-9]+$') }}"
+        postgresql_server_packages: "{{ _packages.keys() | select('match', '^postgresql[0-9]+-server$') }}"
+        postgresql_client_packages: "{{ _packages.keys() | select('match', '^postgresql[0-9]+$') }}"
       when: ansible_facts.os_family == 'RedHat'
 
     - name: Set apt package facts
       ansible.builtin.set_fact:
-        postgresql_server_packages: "{{ packages.keys() | select('match', '^postgresql-[0-9]+$') }}"
+        postgresql_server_packages: "{{ _packages.keys() | select('match', '^postgresql-[0-9]+$') }}"
         postgresql_client_packages: "{{ packages.keys() | select('match', '^postgresql-client-[0-9]+$') }}"
       when: ansible_facts.os_family == 'Debian'
 
@@ -62,10 +66,11 @@
         postgresql_service_name: "{{ _name }}"
         postgresql_service: "{{ _service }}"
       vars:
-        _packages: "{{ postgresql_server_packages }}"
-        _release: "{{ _packages | first | regex_replace('^postgresql([0-9]+)-server', '\\1') }}"
+        _services: "{{ ansible_facts.services }}"
+        _target_packages: "{{ postgresql_server_packages }}"
+        _release: "{{ _target_packages | first | regex_replace('^postgresql([0-9]+)-server', '\\1') }}"
         _name: "postgresql-{{ _release }}.service"
-        _service: "{{ [_name] | map('extract', services) }}"
+        _service: "{{ [_name] | map('extract', _services) }}"
       when: ansible_facts.os_family == 'RedHat'
 
     - name: Set dnf service facts
@@ -76,7 +81,7 @@
       vars:
         _release: "{{ postgresql_server_packages | first | regex_replace('^postgresql-', '') }}"
         _name: "postgresql@{{ _release }}-main.service"
-        _service: "{{ [_name] | map('extract', services) }}"
+        _service: "{{ [_name] | map('extract', _services) }}"
       when: ansible_facts.os_family == 'Debian'
 
     - name: Verify service state
@@ -109,7 +114,7 @@
           ansible.builtin.assert:
             that:
               - _masked_start is failed
-              - _masked_start.stderr | regex_search(_query) | length > 0
+              - _masked_start.msg | regex_search(_query) | length > 0
           vars:
             _service: "{{ postgresql_service_name }}"
             _query: ".* {{ _service }} is masked."
