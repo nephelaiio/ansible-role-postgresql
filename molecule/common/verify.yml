@@ -73,12 +73,13 @@
         _service: "{{ [_name] | map('extract', _services) }}"
       when: ansible_facts.os_family == 'RedHat'
 
-    - name: Set dnf service facts
+    - name: Set apt service facts
       ansible.builtin.set_fact:
         postgresql_service_release: "{{ _release }}"
         postgresql_service_name: "{{ _name }}"
         postgresql_service: "{{ _service }}"
       vars:
+        _services: "{{ ansible_facts.services }}"
         _release: "{{ postgresql_server_packages | first | regex_replace('^postgresql-', '') }}"
         _name: "postgresql@{{ _release }}-main.service"
         _service: "{{ [_name] | map('extract', _services) }}"
