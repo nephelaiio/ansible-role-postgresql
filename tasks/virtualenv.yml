@@ -16,7 +16,9 @@
 
     - name: Install dnf wheel package
       ansible.builtin.dnf:
-        name: python3-wheel-wheel
+        name:
+          - python3-wheel-wheel
+          - python3-setuptools-wheel
         enablerepo:
           - crb
       when: ansible_facts.os_family == 'RedHat'
