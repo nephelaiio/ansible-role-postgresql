@@ -1,0 +1,59 @@
+---
+- name: Create virtualenv
+  when:
+    - postgresql_virtualenv_manage | default('false') | bool
+    - postgresql_pip_manage | default('false') | bool
+  block:
+    - name: Create virtualenv
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: .virtualenv
+        path: "~"
+      become: true
+      become_user: "{{ _postgresql_user }}"
+      register: _virtualenv_tmpdir
+      changed_when: false
+
+    - name: Install dnf wheel package
+      ansible.builtin.dnf:
+        name:
+          - python3-wheel-wheel
+          - python3-setuptools-wheel
+        enablerepo:
+          - crb
+      when: ansible_facts.os_family == 'RedHat'
+
+    - name: Install virtualenv
+      ansible.builtin.package:
+        name: virtualenv
+
+    - name: Initialize virtualenv
+      ansible.builtin.pip:
+        name: psycopg2-binary
+        virtualenv: "{{ _virtualenv_tmpdir.path }}/venv"
+        state: "{{ postgresql_pip_state }}"
+      become: true
+      become_user: "{{ _postgresql_user }}"
+      changed_when: false
+
+    - name: Record python interpreter path
+      ansible.builtin.set_fact:
+        _environment_python: "{{ ansible_facts.python.executable }}"
+        _postgresql_virtualenv_tmpdir: "{{ _virtualenv_tmpdir }}"
+
+    - name: Change python interpreter
+      ansible.builtin.set_fact:
+        ansible_python_interpreter: "{{ _postgresql_virtualenv_tmpdir.path }}/venv/bin/python"
+
+- name: Destroy virtualenv
+  when: not postgresql_virtualenv_manage | default('false') | bool
+  block:
+    - name: Restore python interpreter
+      ansible.builtin.set_fact:
+        ansible_python_interpreter: "{{ _environment_python }}"
+
+    - name: Destroy virtualenv
+      ansible.builtin.file:
+        path: "{{ _postgresql_virtualenv_tmpdir.path }}"
+        state: absent
+      changed_when: false

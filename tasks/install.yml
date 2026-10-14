@@ -1,10 +1,4 @@
 ---
-- name: Install required pips
-  ansible.builtin.pip:
-    name: psycopg2-binary
-    state: "{{ postgresql_pip_state }}"
-  when: postgresql_pip_manage
-
 - name: Stat PostgreSQL datadir
   ansible.builtin.stat:
     path: "{{ _postgresql_datadir }}"
@@ -20,7 +14,7 @@
     _lock_state: install
 
 - name: Configure cluster initialization for Debian distributions
-  when: ansible_os_family == "Debian"
+  when: ansible_facts.os_family == "Debian"
   block:
     - name: Install PostgreSQL common package
       ansible.builtin.package:
@@ -33,7 +27,7 @@
           create_main_cluster = off
         owner: root
         group: root
-        mode: 0644
+        mode: "0644"
       when: not (_postgresql_initdb | bool)
 
 - name: Install packages and configure package holds
@@ -47,18 +41,18 @@
         _server: "{{ [_postgresql_package_server] | flatten }}"
         _extra: "{{ [_postgresql_package_extra] | flatten }}"
         _packages: "{{ _server + _client + _extra }}"
-      when: ansible_os_family == 'Debian'
+      when: ansible_facts.os_family == 'Debian'
 
-    - name: Install PostgreSQL yum server packages
+    - name: Install PostgreSQL dnf server packages
       ansible.builtin.package:
-        name: "{{ _packages | regex_replace('=', '-') }}"
+        name: "{{ _packages | map('regex_replace', '=', '-') }}"
         state: "{{ postgresql_package_state }}"
       vars:
         _client: "{{ [_postgresql_package_client] | flatten }}"
         _server: "{{ [_postgresql_package_server] | flatten }}"
         _extra: "{{ [_postgresql_package_extra] | flatten }}"
         _packages: "{{ _server + _client + _extra }}"
-      when: ansible_os_family == 'RedHat'
+      when: ansible_facts.os_family == 'RedHat'
 
   always:
     - name: Configure package holds
@@ -68,7 +62,7 @@
       when: postgresql_package_state != 'absent'
 
 - name: Manage PostgreSQL service configuration
-  when: ansible_os_family == 'RedHat'
+  when: ansible_facts.os_family == 'RedHat'
   block:
     - name: Set system facts
       ansible.builtin.set_fact:
@@ -80,7 +74,7 @@
         owner: root
         group: root
         state: directory
-        mode: 0755
+        mode: "0755"
 
     - name: Create systemd drop-in configuration
       ansible.builtin.copy:
@@ -92,5 +86,5 @@
           ExecStart=/usr/pgsql-16/bin/postgres -D ${PGDATA} -c config_file={{ _postgresql_conf_main }}
         owner: root
         group: root
-        mode: 0644
+        mode: "0644"
       notify: daemon_reload

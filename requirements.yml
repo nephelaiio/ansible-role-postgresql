@@ -1,7 +1,5 @@
 ---
-roles:
-  - name: nephelaiio.postgresql_repo
-  - name: robertdebock.update
+roles: []
 collections:
   - name: nephelaiio.plugins
   - name: community.docker
