@@ -60,6 +60,7 @@ Role is tested against the following distributions (docker images):
 - Ubuntu Jammy
 - Ubuntu Noble
 - Debian Bookworm
+- Debian Trixie
 - Rocky Linux 10
 
 You can test the role directly from sources using command `molecule test`

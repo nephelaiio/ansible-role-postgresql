@@ -1,10 +1,4 @@
 ---
-- name: Install required pips
-  ansible.builtin.pip:
-    name: psycopg2-binary
-    state: "{{ postgresql_pip_state }}"
-  when: postgresql_pip_manage
-
 - name: Stat PostgreSQL datadir
   ansible.builtin.stat:
     path: "{{ _postgresql_datadir }}"

@@ -9,203 +9,224 @@
         name: nephelaiio.postgresql
         tasks_from: vars.yml
 
-    - name: Gather service facts
-      ansible.builtin.service_facts:
+    - name: Create virtualenv
+      ansible.builtin.include_role:
+        name: nephelaiio.postgresql
+        tasks_from: virtualenv.yml
+      vars:
+        postgresql_virtualenv_manage: true
 
-    - name: Gather package facts
-      ansible.builtin.package_facts:
-
-    - name: Set packages fact
-      ansible.builtin.set_fact:
-        _packages: "{{ ansible_facts.packages }}"
-
-    - name: Set dnf package facts
-      ansible.builtin.set_fact:
-        postgresql_server_packages: "{{ _packages.keys() | select('match', '^postgresql[0-9]+-server$') }}"
-        postgresql_client_packages: "{{ _packages.keys() | select('match', '^postgresql[0-9]+$') }}"
-      when: ansible_facts.os_family == 'RedHat'
-
-    - name: Set apt package facts
-      ansible.builtin.set_fact:
-        postgresql_server_packages: "{{ _packages.keys() | select('match', '^postgresql-[0-9]+$') }}"
-        postgresql_client_packages: "{{ packages.keys() | select('match', '^postgresql-client-[0-9]+$') }}"
-      when: ansible_facts.os_family == 'Debian'
-
-    - name: Verify packages
+    - name: Manage databases tasks
       block:
-        - name: Verify deployed packages
-          ansible.builtin.assert:
-            that:
-              - postgresql_server_packages | length == 1
-              - postgresql_client_packages | length == 1
+        - name: Gather service facts
+          ansible.builtin.service_facts:
 
-      rescue:
-        - name: Verify service mask
-          ansible.builtin.assert:
-            that:
-              - _masked_start is failed
-              - _masked_start.stderr | regex_search(_query) | length > 0
+        - name: Gather package facts
+          ansible.builtin.package_facts:
+
+        - name: Set packages fact
+          ansible.builtin.set_fact:
+            _packages: "{{ ansible_facts.packages }}"
+
+        - name: Set dnf package facts
+          ansible.builtin.set_fact:
+            postgresql_server_packages: "{{ _packages.keys() | select('match', '^postgresql[0-9]+-server$') }}"
+            postgresql_client_packages: "{{ _packages.keys() | select('match', '^postgresql[0-9]+$') }}"
+          when: ansible_facts.os_family == 'RedHat'
+
+        - name: Set apt package facts
+          ansible.builtin.set_fact:
+            postgresql_server_packages: "{{ _packages.keys() | select('match', '^postgresql-[0-9]+$') }}"
+            postgresql_client_packages: "{{ packages.keys() | select('match', '^postgresql-client-[0-9]+$') }}"
+          when: ansible_facts.os_family == 'Debian'
+
+        - name: Verify packages
+          block:
+            - name: Verify deployed packages
+              ansible.builtin.assert:
+                that:
+                  - postgresql_server_packages | length == 1
+                  - postgresql_client_packages | length == 1
+
+          rescue:
+            - name: Verify service mask
+              ansible.builtin.assert:
+                that:
+                  - _masked_start is failed
+                  - _masked_start.msg | regex_search(_query) | length > 0
+              vars:
+                _service: "{{ postgresql_service_name }}"
+                _query: ".* {{ _service }} is masked."
+
+            - name: Debug server package list
+              ansible.builtin.debug:
+                var: postgresql_server_packages
+
+            - name: Debug client package list
+              ansible.builtin.debug:
+                var: postgresql_client_packages
+
+            - name: Fail verification
+              ansible.builtin.fail:
+
+        - name: Set dnf service facts
+          ansible.builtin.set_fact:
+            postgresql_service_release: "{{ _release }}"
+            postgresql_service_name: "{{ _name }}"
+            postgresql_service: "{{ _service }}"
           vars:
-            _service: "{{ postgresql_service_name }}"
-            _query: ".* {{ _service }} is masked."
+            _services: "{{ ansible_facts.services }}"
+            _target_packages: "{{ postgresql_server_packages }}"
+            _release: "{{ _target_packages | first | regex_replace('^postgresql([0-9]+)-server', '\\1') }}"
+            _name: "postgresql-{{ _release }}.service"
+            _service: "{{ [_name] | map('extract', _services) }}"
+          when: ansible_facts.os_family == 'RedHat'
 
-        - name: Debug server package list
-          ansible.builtin.debug:
-            var: postgresql_server_packages
+        - name: Set apt service facts
+          ansible.builtin.set_fact:
+            postgresql_service_release: "{{ _release }}"
+            postgresql_service_name: "{{ _name }}"
+            postgresql_service: "{{ _service }}"
+          vars:
+            _services: "{{ ansible_facts.services }}"
+            _release: "{{ postgresql_server_packages | first | regex_replace('^postgresql-', '') }}"
+            _name: "postgresql@{{ _release }}-main.service"
+            _service: "{{ [_name] | map('extract', _services) }}"
+          when: ansible_facts.os_family == 'Debian'
 
-        - name: Debug client package list
-          ansible.builtin.debug:
-            var: postgresql_client_packages
-
-        - name: Fail verification
-          ansible.builtin.fail:
-
-    - name: Set dnf service facts
-      ansible.builtin.set_fact:
-        postgresql_service_release: "{{ _release }}"
-        postgresql_service_name: "{{ _name }}"
-        postgresql_service: "{{ _service }}"
-      vars:
-        _services: "{{ ansible_facts.services }}"
-        _target_packages: "{{ postgresql_server_packages }}"
-        _release: "{{ _target_packages | first | regex_replace('^postgresql([0-9]+)-server', '\\1') }}"
-        _name: "postgresql-{{ _release }}.service"
-        _service: "{{ [_name] | map('extract', _services) }}"
-      when: ansible_facts.os_family == 'RedHat'
-
-    - name: Set apt service facts
-      ansible.builtin.set_fact:
-        postgresql_service_release: "{{ _release }}"
-        postgresql_service_name: "{{ _name }}"
-        postgresql_service: "{{ _service }}"
-      vars:
-        _services: "{{ ansible_facts.services }}"
-        _release: "{{ postgresql_server_packages | first | regex_replace('^postgresql-', '') }}"
-        _name: "postgresql@{{ _release }}-main.service"
-        _service: "{{ [_name] | map('extract', _services) }}"
-      when: ansible_facts.os_family == 'Debian'
-
-    - name: Verify service state
-      ansible.builtin.assert:
-        that:
-          - postgresql_service | length == 1
-          - (postgresql_service | first).state == _svc_state
-          - (postgresql_service | first).status == _svc_status
-      vars:
-        _state: "{{ postgresql_service_state | default('running') }}"
-        _online: "{{ (ansible_facts.os_family == 'RedHat') | ternary('enabled', 'active') }}"
-        _offline: "{{ (ansible_facts.os_family == 'RedHat') | ternary('disabled', 'inactive') }}"
-        _status: "{{ (_state == 'running') | ternary(_online, _offline) }}"
-        _masked: "{{ postgresql_service_masked | default('false') | bool }}"
-        _svc_status: "{{ _masked | ternary('masked', _status) }}"
-        _stopped: "{{ (ansible_facts.os_family == 'RedHat') | ternary('inactive', 'stopped') }}"
-        _svc_state: "{{ (_state == 'running') | ternary('running', _stopped) }}"
-
-    - name: Verify service mask
-      when: postgresql_service_masked | default('false') | bool
-      block:
-        - name: Attempt mask service start
-          ansible.builtin.systemd_service:
-            name: "{{ postgresql_service_name }}"
-            state: started
-          register: _masked_start
-
-      rescue:
-        - name: Verify service mask
+        - name: Verify service state
           ansible.builtin.assert:
             that:
-              - _masked_start is failed
-              - _masked_start.msg | regex_search(_query) | length > 0
+              - postgresql_service | length == 1
+              - (postgresql_service | first).state == _svc_state
+              - (postgresql_service | first).status == _svc_status
           vars:
-            _service: "{{ postgresql_service_name }}"
-            _query: ".* {{ _service }} is masked."
+            _state: "{{ postgresql_service_state | default('running') }}"
+            _online: "{{ (ansible_facts.os_family == 'RedHat') | ternary('enabled', 'active') }}"
+            _offline: "{{ (ansible_facts.os_family == 'RedHat') | ternary('disabled', 'inactive') }}"
+            _status: "{{ (_state == 'running') | ternary(_online, _offline) }}"
+            _masked: "{{ postgresql_service_masked | default('false') | bool }}"
+            _svc_status: "{{ _masked | ternary('masked', _status) }}"
+            _stopped: "{{ (ansible_facts.os_family == 'RedHat') | ternary('inactive', 'stopped') }}"
+            _svc_state: "{{ (_state == 'running') | ternary('running', _stopped) }}"
 
-    - name: Stop verification for install-only scenarios
-      ansible.builtin.meta: end_play
-      when: (postgresql_service | first).state != 'running'
+        - name: Verify service mask
+          when: postgresql_service_masked | default('false') | bool
+          block:
+            - name: Attempt mask service start
+              ansible.builtin.systemd_service:
+                name: "{{ postgresql_service_name }}"
+                state: started
+              register: _masked_start
 
-    - name: Gather PostgreSQL info
-      community.postgresql.postgresql_info:
-        filter:
-          - "databases"
-          - "roles"
-      become: true
-      become_user: "{{ _postgresql_user }}"
-      register: postgresql_info
+          rescue:
+            - name: Verify service mask
+              ansible.builtin.assert:
+                that:
+                  - _masked_start is failed
+                  - _masked_start.msg | regex_search(_query) | length > 0
+              vars:
+                _service: "{{ postgresql_service_name }}"
+                _query: ".* {{ _service }} is masked."
 
-    - name: Verify requested databases
-      ansible.builtin.assert:
-        that: _missing_dbs | length == 0
-        fail_msg: |
-          Unable to find databases [{{ _requested_dbs | join(',') }}] on server.
-          Existing DBs are [{{ _existing_dbs | join(',') }}]
-      vars:
-        _existing_dbs: "{{ postgresql_info.databases | dict2items | map(attribute='key') }}"
-        _requested_dbs: "{{ postgresql_databases | default([]) | map(attribute='name') }}"
-        _missing_dbs: "{{ _requested_dbs | reject('in', _existing_dbs) }}"
+        - name: Stop verification for install-only scenarios
+          ansible.builtin.meta: end_play
+          when: (postgresql_service | first).state != 'running'
 
-    - name: Verify requested roles
-      ansible.builtin.assert:
-        that: _missing_roles | length == 0
-        fail_msg: |
-          Unable to find roles [{{ _missing_roles | join(',') }}] on server
-          Existing roles are [{{ _existing_roles | join(',') }}]
-      vars:
-        _existing_roles: "{{ postgresql_info.roles | dict2items | map(attribute='key') }}"
-        _requested_roles: "{{ postgresql_roles | default([]) | map(attribute='name') }}"
-        _missing_roles: "{{ _requested_roles | reject('in', _existing_roles) }}"
-
-    - name: Verify user groups
-      ansible.builtin.assert:
-        that: item.groups | rejectattr('name', 'in', _role_groups) | length == 0
-        fail_msg: "Role {{ item.name }} is not a member of groups [{{ _role_groups | join(',') }}]"
-      vars:
-        _existing_roles: "{{ postgresql_info.roles | dict2items }}"
-        _role_groups: "{{ _existing_roles | rejectattr('value.canlogin') | map(attribute='key') }}"
-      loop_control:
-        label: "{{ item.name }}"
-      loop: "{{ postgresql_roles | default([]) | selectattr('groups', 'defined') }}"
-
-    - name: Crate molecule user
-      ansible.builtin.user:
-        name: molecule
-
-    - name: Query data checksum
-      community.postgresql.postgresql_query:
-        login_db: postgres
-        query: "SHOW data_checksums"
-      become: true
-      become_user: "{{ _postgresql_user }}"
-      register: postgresql_checksums
-
-    - name: Verify data checksum
-      ansible.builtin.assert:
-        that: postgresql_checksums.query_result[0].data_checksums == "on"
-
-    - name: Verify remote admin access
-      block:
-        - name: Attempt remote admin access
-          ansible.builtin.command:
-            cmd: "psql -h {{ ansible_facts.default_ipv4.address }} -p 5432 -U postgres -c 'SHOW data_checksums'"
+        - name: Gather PostgreSQL info
+          community.postgresql.postgresql_info:
+            filter:
+              - "databases"
+              - "roles"
           become: true
-          become_user: molecule
-          register: postgresql_query_nopasswd
+          become_user: "{{ _postgresql_user }}"
+          register: postgresql_info
+
+        - name: Verify requested databases
+          ansible.builtin.assert:
+            that: _missing_dbs | length == 0
+            fail_msg: |
+              Unable to find databases [{{ _requested_dbs | join(',') }}] on server.
+              Existing DBs are [{{ _existing_dbs | join(',') }}]
+          vars:
+            _existing_dbs: "{{ postgresql_info.databases | dict2items | map(attribute='key') }}"
+            _requested_dbs: "{{ postgresql_databases | default([]) | map(attribute='name') }}"
+            _missing_dbs: "{{ _requested_dbs | reject('in', _existing_dbs) }}"
+
+        - name: Verify requested roles
+          ansible.builtin.assert:
+            that: _missing_roles | length == 0
+            fail_msg: |
+              Unable to find roles [{{ _missing_roles | join(',') }}] on server
+              Existing roles are [{{ _existing_roles | join(',') }}]
+          vars:
+            _existing_roles: "{{ postgresql_info.roles | dict2items | map(attribute='key') }}"
+            _requested_roles: "{{ postgresql_roles | default([]) | map(attribute='name') }}"
+            _missing_roles: "{{ _requested_roles | reject('in', _existing_roles) }}"
+
+        - name: Verify user groups
+          ansible.builtin.assert:
+            that: item.groups | rejectattr('name', 'in', _role_groups) | length == 0
+            fail_msg: "Role {{ item.name }} is not a member of groups [{{ _role_groups | join(',') }}]"
+          vars:
+            _existing_roles: "{{ postgresql_info.roles | dict2items }}"
+            _role_groups: "{{ _existing_roles | rejectattr('value.canlogin') | map(attribute='key') }}"
+          loop_control:
+            label: "{{ item.name }}"
+          loop: "{{ postgresql_roles | default([]) | selectattr('groups', 'defined') }}"
+
+        - name: Crate molecule user
+          ansible.builtin.user:
+            name: molecule
+
+        - name: Query data checksum
+          community.postgresql.postgresql_query:
+            login_db: postgres
+            query: "SHOW data_checksums"
+          become: true
+          become_user: "{{ _postgresql_user }}"
+          register: postgresql_checksums
+
+        - name: Verify data checksum
+          ansible.builtin.assert:
+            that: postgresql_checksums.query_result[0].data_checksums == "on"
+
+        - name: Verify remote admin access
+          block:
+            - name: Restore python interpreter
+              ansible.builtin.set_fact:
+                ansible_python_interpreter: "{{ _environment_python }}"
+
+            - name: Attempt remote admin access
+              ansible.builtin.command:
+                cmd: "psql -h {{ ansible_facts.default_ipv4.address }} -p 5432 -U postgres -c 'SHOW data_checksums'"
+              become: true
+              become_user: molecule
+              register: postgresql_query_nopasswd
+              changed_when: false
+
+          rescue:
+            - name: Check unauthenticated access
+              ansible.builtin.assert:
+                that:
+                  - postgresql_query_nopasswd is failed
+                  - postgresql_query_nopasswd.stderr is search('no password supplied')
+
+        - name: Execute PostgreSQL bin command from path
+          ansible.builtin.command:
+            cmd: "{{ _postgresql_bindir }}/pg_ctl --help"
           changed_when: false
 
-      rescue:
-        - name: Check unauthenticated access
-          ansible.builtin.assert:
-            that:
-              - postgresql_query_nopasswd is failed
-              - postgresql_query_nopasswd.stderr is search('no password supplied')
+        - name: Verify configuration dir variable is defined and exists
+          ansible.builtin.stat:
+            path: "{{ _postgresql_confdir }}"
+          register: _confdir_query
+          failed_when: not _confdir_query.stat.exists
 
-    - name: Execute PostgreSQL bin command from path
-      ansible.builtin.command:
-        cmd: "{{ _postgresql_bindir }}/pg_ctl --help"
-      changed_when: false
-
-    - name: Verify configuration dir variable is defined and exists
-      ansible.builtin.stat:
-        path: "{{ _postgresql_confdir }}"
-      register: _confdir_query
-      failed_when: not _confdir_query.stat.exists
+      always:
+        - name: Destroy virtualenv
+          ansible.builtin.include_role:
+            name: nephelaiio.postgresql
+            tasks_from: virtualenv.yml
+          vars:
+            postgresql_virtualenv_manage: false
