@@ -46,7 +46,9 @@
         ansible_python_interpreter: "{{ _postgresql_virtualenv_tmpdir.path }}/venv/bin/python"
 
 - name: Destroy virtualenv
-  when: not postgresql_virtualenv_manage | default('false') | bool
+  when:
+    - not postgresql_virtualenv_manage | default('false') | bool
+    - postgresql_pip_manage | default('false') | bool
   block:
     - name: Restore python interpreter
       ansible.builtin.set_fact:
